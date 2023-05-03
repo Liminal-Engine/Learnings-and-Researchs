@@ -1,7 +1,7 @@
 CXX  =   g++
 INCLUDES    = -I include
 LDFLAGS = -lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi
-CXXFLAGS  =   $(INCLUDES) $(LDFLAGS) -std=c++23 -O2 -g -g3 -Wall -Wextra #-Werror
+CXXFLAGS  =   $(INCLUDES) $(LDFLAGS) -std=c++23 -O2 -g -g3 #-Wall -Wextra #-Werror
 EXEC    =   vulkanEngine
 SRC =   $(wildcard src/*.cpp) $(wildcard src/*/*.cpp) $(wildcard src/*/**/*.cpp)
 OBJ =   $(SRC:.cpp=.o)

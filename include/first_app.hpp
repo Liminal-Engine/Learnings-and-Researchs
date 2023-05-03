@@ -1,6 +1,8 @@
 #pragma once
 
 #include "window.hpp"
+#include "pipeline.hpp"
+#include "device.hpp"
 
 class FirstApp {
 
@@ -20,6 +22,8 @@ class FirstApp {
         void run(void);
 
     private :
-        Window _window; //pointer to a window
+        Window _window;
+        Pipeline _pipeline;
+        Device _device;
 
 };

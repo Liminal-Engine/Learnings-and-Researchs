@@ -16,13 +16,16 @@ class Window {
         std::pair<int, int> getSize(void) const;
         std::string getName(void) const;
         bool shouldClose(void) const;
-
+        void createWindowSurface(
+            VkInstance instance,
+            VkSurfaceKHR *surface
+        );
 
         /*
             In this tutorial, we will see that resource acquisition
             IS initialization.
             Since we're using a pointer to a window, we don't want 2 windows
-            pointing to the same ressource, so we delete the copy constructor
+            pointing to the same resource, so we delete the copy constructor
             and operator
         */
         Window(const Window&) = delete; //Copy constructor deletion

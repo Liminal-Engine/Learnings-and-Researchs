@@ -2,7 +2,15 @@
 
 FirstApp::FirstApp(const std::string &name)
 : 
-_window( Window(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, name) )
+_window( Window(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, name) ),
+_device( Device(this->_window) ),
+_pipeline(Pipeline(
+    "shaders/simple_shader.vert.spv",
+    "shaders/simple_shader.frag.spv",
+    this->_device,
+    Pipeline::getDefaultPipelineConfig(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
+
+))
 {
 
 }
@@ -12,7 +20,14 @@ FirstApp::FirstApp(
     const int height,
     const std::string &name
 ) :
-_window(Window(width, height, name))
+_window(Window(width, height, name)),
+_device( Device(this->_window) ),
+_pipeline(Pipeline(
+    "shaders/simple_shader.vert.spv",
+    "shaders/simple_shader.frag.spv",
+    this->_device,
+    Pipeline::getDefaultPipelineConfig(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
+))
 {
 
 }
