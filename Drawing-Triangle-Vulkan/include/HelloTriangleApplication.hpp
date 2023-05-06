@@ -17,11 +17,11 @@ extern const std::vector<const char *> VALIDATION_LAYERS;
     const bool enableValidationLayers = true;
 #endif
 
-class HelloTriangeApplication {
+class HelloTriangleApplication {
 
     public:
         void run(void);
-        HelloTriangeApplication(void);
+        HelloTriangleApplication(void);
 
     private:
         void _initWindow(void);
@@ -29,6 +29,7 @@ class HelloTriangeApplication {
         void _initVulkan(void);
         //called from _initVulkan :
             void _createInstance(void);
+            void _createSurface(void);
             void _pickPhysicalDevice(void);
             void _createLogicalDevice(void);
 
@@ -38,10 +39,12 @@ class HelloTriangeApplication {
 
         GLFWwindow *_window;
         VkInstance _instance;
+        VkSurfaceKHR _surface;
         // _physicalDevice will be implicitly destroyed when _instance is destroyed, so don't need to destroy it in the destructor
         VkPhysicalDevice _physicalDevice; //default value = VK_NULL_HANDLE
         VkDevice _logicalDevice; //default value = VK_NULL_HANDLE
         // _graphicsQueue will be implicitly destroyed when _logicalDevice is destroyed, so don't need to destroy it in the destructor
-        VkQueue _graphicsQueue; //Graphics queue handle
+        VkQueue _graphicsQueue; //Graphics queue handle = "drawing"
+        VkQueue _presentQueue; //Presentation queue command = "rendering final image, after having draw everything"
 
 };

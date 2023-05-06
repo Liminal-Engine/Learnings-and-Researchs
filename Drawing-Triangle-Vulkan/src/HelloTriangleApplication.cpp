@@ -4,27 +4,28 @@
 #include <stdexcept>
 #include <iostream>
 #include <vector>
+#include <set>
 #include <string.h>
 
 const std::vector<const char *> VALIDATION_LAYERS = {
     "VK_LAYER_KHRONOS_validation" //all of the useful standard validation is bundled into this layer
 };
 
-HelloTriangeApplication::HelloTriangeApplication(void)
+HelloTriangleApplication::HelloTriangleApplication(void)
 :
 _physicalDevice(VK_NULL_HANDLE),
 _logicalDevice(VK_NULL_HANDLE)
 {}
 
 
-void HelloTriangeApplication::run(void) {
+void HelloTriangleApplication::run(void) {
     this->_initWindow();
     this->_initVulkan();
     this->_mainLoop();
     this->_cleanUp();
 }
 
-void HelloTriangeApplication::_initWindow(void) {
+void HelloTriangleApplication::_initWindow(void) {
     glfwInit(); //init GLFW lib
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // explicilty tells GLFW to NOT use OpenGL context
@@ -34,16 +35,17 @@ void HelloTriangeApplication::_initWindow(void) {
 
 }
 
-void HelloTriangeApplication::_initVulkan(void) {
+void HelloTriangleApplication::_initVulkan(void) {
     if (enableValidationLayers && UTILS_checkValidationLayerSupport(VALIDATION_LAYERS) == false) {
         throw std::runtime_error("validation layers requested are not available");
     }
     this->_createInstance();
+    this->_createSurface();
     this->_pickPhysicalDevice();
     this->_createLogicalDevice();
 }
 
-void HelloTriangeApplication::_createInstance(void) {
+void HelloTriangleApplication::_createInstance(void) {
     VkApplicationInfo appInfo{};
 
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -90,7 +92,13 @@ void HelloTriangeApplication::_createInstance(void) {
     }
 }
 
-void HelloTriangeApplication::_pickPhysicalDevice(void) {
+void HelloTriangleApplication::_createSurface(void) {
+    if ( glfwCreateWindowSurface(this->_instance, this->_window, nullptr, &this->_surface) != VK_SUCCESS ) {
+        throw std::runtime_error("Failed creating a window surface");
+    }
+}
+
+void HelloTriangleApplication::_pickPhysicalDevice(void) {
     //1. Enumerate compatible devices and allocate a vector to store them
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(this->_instance, &deviceCount, nullptr);
@@ -101,7 +109,7 @@ void HelloTriangeApplication::_pickPhysicalDevice(void) {
     vkEnumeratePhysicalDevices(this->_instance, &deviceCount, devices.data());
     //2. Check if at least one of the compatible devices meets the requirements :
     for (const auto &device : devices) {
-        if (UTILS_isDeviceSuitable(device)) {
+        if (UTILS_isDeviceSuitable(device, this->_surface)) {
             this->_physicalDevice = device;
             break;
         }
@@ -112,16 +120,25 @@ void HelloTriangeApplication::_pickPhysicalDevice(void) {
     }
 }
 
-void HelloTriangeApplication::_createLogicalDevice(void) {
-    QueueFamilyIndices indices = UTILS_findQueueFamilies(this->_physicalDevice);
-
-    //1. Specifying which queues to be created
-    VkDeviceQueueCreateInfo queueCreateInfo{};
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value(); //we tell the logical device which queue family to use
-    queueCreateInfo.queueCount = 1; //we tell the nb of queues we want to use for a single queue family
+void HelloTriangleApplication::_createLogicalDevice(void) {
+    //1. Setting up queue create infos, for each queue
+    QueueFamilyIndices indices = UTILS_findQueueFamilies(this->_physicalDevice, this->_surface);
+    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::set<uint32_t> uniqueQueueFamilies = {
+        indices.graphicsFamily.value(),
+        indices.presentFamily.value()
+    };
     float queuePriority = 1.0f; //scheduling command buffer execution
-    queueCreateInfo.pQueuePriorities = &queuePriority;
+    for (uint32_t queueFamily : uniqueQueueFamilies) {
+        VkDeviceQueueCreateInfo queueCreateInfo{};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = queueFamily; //we tell the logical device which queue family to use
+        queueCreateInfo.queueCount = 1; //we tell the nb of queues we want to use for a single queue family
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+        
+        queueCreateInfos.push_back(queueCreateInfo);
+    }
+    
 
     //2. Specifying features we want to enable for the device
     VkPhysicalDeviceFeatures deviceFeatures{}; //Leave blank for now as we don't anything special
@@ -129,10 +146,10 @@ void HelloTriangeApplication::_createLogicalDevice(void) {
     //3. Creating the logical device;
     VkDeviceCreateInfo deviceCreateInfo{};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
-    deviceCreateInfo.queueCreateInfoCount = 1;
-    deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
+    deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+    deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
     deviceCreateInfo.enabledExtensionCount = 0;
+    deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
     deviceCreateInfo.pNext = nullptr;
     //similar to instance creation :
     if (enableValidationLayers) { //if debug mode
@@ -149,18 +166,17 @@ void HelloTriangeApplication::_createLogicalDevice(void) {
     //We can use vkGetDeviceQueue to retrieve queue handles for each queue family.
     //We are using 0 because we only creating a single queue from this family (so index is 0)
     vkGetDeviceQueue(this->_logicalDevice, indices.graphicsFamily.value(), 0, &this->_graphicsQueue);
-
-        
 }
 
-void HelloTriangeApplication::_mainLoop(void) {
+void HelloTriangleApplication::_mainLoop(void) {
     while (glfwWindowShouldClose(this->_window) == false) { // poll events while window has not been ordered to close by the user
         glfwPollEvents();
     }
 }
 
-void HelloTriangeApplication::_cleanUp(void) {
+void HelloTriangleApplication::_cleanUp(void) {
     vkDestroyDevice(this->_logicalDevice, nullptr);
+    vkDestroySurfaceKHR(this->_instance, this->_surface, nullptr);
     vkDestroyInstance(this->_instance, nullptr); //destroy vulkan instance    
     glfwDestroyWindow(this->_window); //destroy window
     glfwTerminate(); //terminate GLFW

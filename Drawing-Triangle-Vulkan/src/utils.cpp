@@ -4,7 +4,7 @@
 #include <string.h>
 
 bool QueueFamilyIndices::isComplete(void) {
-    return this->graphicsFamily.has_value();
+    return this->graphicsFamily.has_value() && this->presentFamily.has_value();
 }
 
 bool UTILS_checkValidationLayerSupport(const std::vector<const char *> VALIDATION_LAYERS) {
@@ -28,14 +28,14 @@ bool UTILS_checkValidationLayerSupport(const std::vector<const char *> VALIDATIO
     return true;
 }
 
-bool UTILS_isDeviceSuitable(VkPhysicalDevice device) {
+bool UTILS_isDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface) {
     VkPhysicalDeviceProperties deviceProps;
     VkPhysicalDeviceFeatures deviceFeatures;
 
     vkGetPhysicalDeviceProperties(device, &deviceProps);
     vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
-    QueueFamilyIndices indices = UTILS_findQueueFamilies(device);
+    QueueFamilyIndices indices = UTILS_findQueueFamilies(device, surface);
     return indices.isComplete();
 
     
@@ -46,18 +46,22 @@ bool UTILS_isDeviceSuitable(VkPhysicalDevice device) {
     // );
 }
 
-QueueFamilyIndices UTILS_findQueueFamilies(VkPhysicalDevice device) {
+QueueFamilyIndices UTILS_findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface) {
     QueueFamilyIndices indices;
     //1. get Queue Families
     uint32_t queueFamilyCount = 0;
+    VkBool32 presentSupport = false;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
     //2. We must find at least one queue family that supports VK_QUEUE_GRAPHICS_BIT
     for (int i = 0; i < queueFamilies.size(); i++) {
         if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            indices.graphicsFamily = i;
-            break;
+            indices.graphicsFamily = i;            
+        }
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+        if (presentSupport) {
+            indices.presentFamily = i;
         }
     }
     return indices;

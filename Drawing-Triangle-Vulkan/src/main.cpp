@@ -10,7 +10,7 @@
 #include <iostream>
 
 int main() {
-    HelloTriangeApplication app;
+    HelloTriangleApplication app;
 
     try {
         app.run();
