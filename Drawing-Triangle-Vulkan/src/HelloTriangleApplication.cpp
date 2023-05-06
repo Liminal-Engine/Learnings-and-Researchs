@@ -1,4 +1,5 @@
 #include "HelloTriangleApplication.hpp"
+#include "utils.hpp"
 
 #include <stdexcept>
 #include <iostream>
@@ -9,26 +10,11 @@ const std::vector<const char *> VALIDATION_LAYERS = {
     "VK_LAYER_KHRONOS_validation" //all of the useful standard validation is bundled into this layer
 };
 
-bool checkValidationLayerSupport(void) {
-    //1. List avialable validation layers
-    uint32_t layerCount = 0;
-    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-    std::vector<VkLayerProperties> availableLayers(layerCount);
-    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
-    for (const char *layerName : VALIDATION_LAYERS) { //2. loop through wanted layers
-        bool found = false;
-        for (const auto &layerProperties : availableLayers) {//3. loop through available layers
-            if (strcmp(layerName, layerProperties.layerName) == 0) {
-                found = true;
-                break;
-            }
-        }
-        if (found == false) {
-            return false;
-        }
-    }
-    return true;
-}
+HelloTriangeApplication::HelloTriangeApplication(void)
+:
+_physicalDevice(VK_NULL_HANDLE),
+_logicalDevice(VK_NULL_HANDLE)
+{}
 
 
 void HelloTriangeApplication::run(void) {
@@ -49,10 +35,12 @@ void HelloTriangeApplication::_initWindow(void) {
 }
 
 void HelloTriangeApplication::_initVulkan(void) {
-    if (enableValidationLayers && checkValidationLayerSupport() == false) {
+    if (enableValidationLayers && UTILS_checkValidationLayerSupport(VALIDATION_LAYERS) == false) {
         throw std::runtime_error("validation layers requested are not available");
     }
     this->_createInstance();
+    this->_pickPhysicalDevice();
+    this->_createLogicalDevice();
 }
 
 void HelloTriangeApplication::_createInstance(void) {
@@ -102,6 +90,68 @@ void HelloTriangeApplication::_createInstance(void) {
     }
 }
 
+void HelloTriangeApplication::_pickPhysicalDevice(void) {
+    //1. Enumerate compatible devices and allocate a vector to store them
+    uint32_t deviceCount = 0;
+    vkEnumeratePhysicalDevices(this->_instance, &deviceCount, nullptr);
+    if (deviceCount == 0) {
+        throw std::runtime_error("Failed to find GPUs with Vulkan support");
+    }
+    std::vector<VkPhysicalDevice> devices(deviceCount);
+    vkEnumeratePhysicalDevices(this->_instance, &deviceCount, devices.data());
+    //2. Check if at least one of the compatible devices meets the requirements :
+    for (const auto &device : devices) {
+        if (UTILS_isDeviceSuitable(device)) {
+            this->_physicalDevice = device;
+            break;
+        }
+    }
+    //3. Throw error if no devices was found
+    if (this->_physicalDevice == VK_NULL_HANDLE) {
+        throw std::runtime_error("Failed to find a suitable GPU");
+    }
+}
+
+void HelloTriangeApplication::_createLogicalDevice(void) {
+    QueueFamilyIndices indices = UTILS_findQueueFamilies(this->_physicalDevice);
+
+    //1. Specifying which queues to be created
+    VkDeviceQueueCreateInfo queueCreateInfo{};
+    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value(); //we tell the logical device which queue family to use
+    queueCreateInfo.queueCount = 1; //we tell the nb of queues we want to use for a single queue family
+    float queuePriority = 1.0f; //scheduling command buffer execution
+    queueCreateInfo.pQueuePriorities = &queuePriority;
+
+    //2. Specifying features we want to enable for the device
+    VkPhysicalDeviceFeatures deviceFeatures{}; //Leave blank for now as we don't anything special
+
+    //3. Creating the logical device;
+    VkDeviceCreateInfo deviceCreateInfo{};
+    deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
+    deviceCreateInfo.queueCreateInfoCount = 1;
+    deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
+    deviceCreateInfo.enabledExtensionCount = 0;
+    deviceCreateInfo.pNext = nullptr;
+    //similar to instance creation :
+    if (enableValidationLayers) { //if debug mode
+        deviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYERS.size());
+        deviceCreateInfo.ppEnabledLayerNames = VALIDATION_LAYERS.data();
+    } else {
+        deviceCreateInfo.enabledLayerCount = 0;
+    }
+    //4. Instanciate logical device by binding it to the physical device and store it
+    if (vkCreateDevice(this->_physicalDevice, &deviceCreateInfo, nullptr, &this->_logicalDevice) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create logical device");
+    }
+    //5. Bind our graphics queue handle to the logical device
+    //We can use vkGetDeviceQueue to retrieve queue handles for each queue family.
+    //We are using 0 because we only creating a single queue from this family (so index is 0)
+    vkGetDeviceQueue(this->_logicalDevice, indices.graphicsFamily.value(), 0, &this->_graphicsQueue);
+
+        
+}
 
 void HelloTriangeApplication::_mainLoop(void) {
     while (glfwWindowShouldClose(this->_window) == false) { // poll events while window has not been ordered to close by the user
@@ -110,7 +160,8 @@ void HelloTriangeApplication::_mainLoop(void) {
 }
 
 void HelloTriangeApplication::_cleanUp(void) {
-    vkDestroyInstance(this->_instance, nullptr); //destroy vulkan instance
+    vkDestroyDevice(this->_logicalDevice, nullptr);
+    vkDestroyInstance(this->_instance, nullptr); //destroy vulkan instance    
     glfwDestroyWindow(this->_window); //destroy window
     glfwTerminate(); //terminate GLFW
 }

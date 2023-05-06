@@ -19,6 +19,25 @@
           "ignoreFailures": true
         }
       ]
+    },
+    {
+      "name": "Debug Vulkan Triangle",
+      "type": "cppdbg",
+      "request": "launch",
+      "args": [],
+      "stopAtEntry": false,
+      "externalConsole": false,
+      "cwd": "/home/matteo/Projects/Perso/Learnings-and-Researchs/Drawing-Triangle-Vulkan",
+      "program": "/home/matteo/Projects/Perso/Learnings-and-Researchs/Drawing-Triangle-Vulkan/vulkanTriangle",
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
     }
   ]
 }

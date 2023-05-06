@@ -10,7 +10,6 @@ const uint32_t HEIGHT = 600;
 
 extern const std::vector<const char *> VALIDATION_LAYERS;
 
-bool checkValidationLayerSupport(void);
 
 #ifdef NDEBUG
     const bool enableValidationLayers = false;
@@ -22,16 +21,27 @@ class HelloTriangeApplication {
 
     public:
         void run(void);
+        HelloTriangeApplication(void);
 
     private:
         void _initWindow(void);
 
         void _initVulkan(void);
-        void _createInstance(void);
+        //called from _initVulkan :
+            void _createInstance(void);
+            void _pickPhysicalDevice(void);
+            void _createLogicalDevice(void);
+
 
         void _mainLoop(void);
         void _cleanUp(void);
 
         GLFWwindow *_window;
         VkInstance _instance;
+        // _physicalDevice will be implicitly destroyed when _instance is destroyed, so don't need to destroy it in the destructor
+        VkPhysicalDevice _physicalDevice; //default value = VK_NULL_HANDLE
+        VkDevice _logicalDevice; //default value = VK_NULL_HANDLE
+        // _graphicsQueue will be implicitly destroyed when _logicalDevice is destroyed, so don't need to destroy it in the destructor
+        VkQueue _graphicsQueue; //Graphics queue handle
+
 };
