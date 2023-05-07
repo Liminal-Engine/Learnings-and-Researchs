@@ -4,11 +4,13 @@
 
 #include <GLFW/glfw3.h>
 #include <vector>
+#include <string>
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
 extern const std::vector<const char *> VALIDATION_LAYERS;
+extern const std::vector<const char *> DEVICE_EXTENSIONS;
 
 
 #ifdef NDEBUG
@@ -32,6 +34,7 @@ class HelloTriangleApplication {
             void _createSurface(void);
             void _pickPhysicalDevice(void);
             void _createLogicalDevice(void);
+            void _createSwapChain(void);
 
 
         void _mainLoop(void);
@@ -47,4 +50,8 @@ class HelloTriangleApplication {
         VkQueue _graphicsQueue; //Graphics queue handle = "drawing"
         VkQueue _presentQueue; //Presentation queue command = "rendering final image, after having draw everything"
 
+        VkSwapchainKHR _swapChain;
+        std::vector<VkImage> _swapChainImages;
+        VkFormat _swapChainImageFormat;
+        VkExtent2D _swapChainExtent;
 };
