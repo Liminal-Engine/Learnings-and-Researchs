@@ -50,6 +50,8 @@ void HelloTriangleApplication::_initVulkan(void) {
     this->_pickPhysicalDevice();
     this->_createLogicalDevice();
     this->_createSwapChain();
+    this->_createImageViews();
+    this->_createGraphicsPipeline();
 }
 
 void HelloTriangleApplication::_createInstance(void) {
@@ -260,8 +262,48 @@ void HelloTriangleApplication::_createSwapChain(void) {
 
     this->_swapChainImageFormat = bestSurfaceFormat.format;
     this->_swapChainExtent = bestExtent;
+}
+
+void HelloTriangleApplication::_createImageViews(void) {
+    //1. Resize to the nb of images in the swap chain
+    this->_swapChainImageViews.resize(this->_swapChainImages.size());
+
+    //2. FOR EACH swap chain images, create an image view using a VkImageViewCreateInfo struct
+    for (size_t i = 0; i < this->_swapChainImages.size(); i++) {
+        VkImageViewCreateInfo createInfo{};
+
+        createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        createInfo.image = this->_swapChainImages[i];
+        //"viewType" and "format" specifies how the image data should be interpreted.
+        //"viewType" allows to treat images as 1D, 2D or 3D textures as well as cube maps
+        createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        createInfo.format = this->_swapChainImageFormat;
+        //"components" allows to swizzle the color channles around. Example : we can map all of
+        //the channles to the red channel for a monochrome texture. We can also map constant values of
+        //0 and 1 to a channel. We will stick to the default mapping :
+        createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        //"subresourceRange" describes the purpose of the image and which part of it should be accessed.
+        //our image will be used as color targets without any mipmapping lvls or multiple layers
+        createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        createInfo.subresourceRange.baseMipLevel = 0;
+        createInfo.subresourceRange.levelCount = 1;
+        createInfo.subresourceRange.baseArrayLayer = 0;
+        createInfo.subresourceRange.layerCount = 1;
+        
+        if (vkCreateImageView(this->_logicalDevice, &createInfo, nullptr, &this->_swapChainImageViews[i]) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create image view");
+        }
+
+    }
+}
+
+void HelloTriangleApplication::_createGraphicsPipeline(void) {
 
 }
+
 
 void HelloTriangleApplication::_mainLoop(void) {
     while (glfwWindowShouldClose(this->_window) == false) { // poll events while window has not been ordered to close by the user
@@ -270,6 +312,9 @@ void HelloTriangleApplication::_mainLoop(void) {
 }
 
 void HelloTriangleApplication::_cleanUp(void) {
+    for (auto imageView : this->_swapChainImageViews) {
+        vkDestroyImageView(this->_logicalDevice, imageView, nullptr);
+    }
     vkDestroySwapchainKHR(this->_logicalDevice, this->_swapChain, nullptr);
     vkDestroyDevice(this->_logicalDevice, nullptr);
     vkDestroySurfaceKHR(this->_instance, this->_surface, nullptr);

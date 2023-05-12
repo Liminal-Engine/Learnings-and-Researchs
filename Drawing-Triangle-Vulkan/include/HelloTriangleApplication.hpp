@@ -35,6 +35,8 @@ class HelloTriangleApplication {
             void _pickPhysicalDevice(void);
             void _createLogicalDevice(void);
             void _createSwapChain(void);
+            void _createImageViews(void);
+            void _createGraphicsPipeline(void);
 
 
         void _mainLoop(void);
@@ -54,4 +56,5 @@ class HelloTriangleApplication {
         std::vector<VkImage> _swapChainImages;
         VkFormat _swapChainImageFormat;
         VkExtent2D _swapChainExtent;
+        std::vector<VkImageView> _swapChainImageViews;
 };
