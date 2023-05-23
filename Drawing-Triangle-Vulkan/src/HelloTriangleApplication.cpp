@@ -292,18 +292,195 @@ void HelloTriangleApplication::_createImageViews(void) {
         createInfo.subresourceRange.levelCount = 1;
         createInfo.subresourceRange.baseArrayLayer = 0;
         createInfo.subresourceRange.layerCount = 1;
-        
-        if (vkCreateImageView(this->_logicalDevice, &createInfo, nullptr, &this->_swapChainImageViews[i]) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create image view");
-        }
 
+        if (vkCreateImageView(this->_logicalDevice, &createInfo, nullptr, &this->_swapChainImageViews[i]) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create image view.");
+        }
     }
 }
 
 void HelloTriangleApplication::_createGraphicsPipeline(void) {
+    std::vector<char> vertShaderCode = UTILS_readFile("./shaders/shader.vert.spv");
+    std::vector<char> fragShaderCode = UTILS_readFile("./shaders/shader.frag.spv");
 
+    VkShaderModule vertShaderModule = UTILS_createShaderModule(vertShaderCode, this->_logicalDevice);
+    VkShaderModule fragShaderModule = UTILS_createShaderModule(fragShaderCode, this->_logicalDevice);
+
+
+    VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+    vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT; //telling which pipeline stage it is
+    vertShaderStageInfo.module = vertShaderModule;
+    vertShaderStageInfo.pName = "main";
+
+    /*
+        There is one more (optional) member, pSpecializationInfo, which we won't be using here,
+        but is worth discussing. It allows you to specify values for shader constants.
+        You can use a single shader module where its behavior can be configured at
+        pipeline creation by specifying different values for the constants used in it.
+        This is more efficient than configuring the shader using variables at render time,
+        because the compiler can do optimizations like eliminating if statements that
+        depend on these values. If you don't have any constants like that, then you
+        can set the member to nullptr, which our struct initialization does automatically.
+    */
+
+    VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+    fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    fragShaderStageInfo.module = fragShaderModule;
+    fragShaderStageInfo.pName = "main";
+
+    VkPipelineShaderStageCreateInfo shaderStages[] = {
+        vertShaderStageInfo,
+        fragShaderStageInfo,
+    };
+
+    /*1. Vertex input : describes the format of the vertex data that will be passed
+    to the vertex shader :
+        1. Bindings : Spacing between data and wheter the data is per-vertex or per-instance
+        2. Attribute descriptions : type of the attributes passed to the vertex shader,
+        which binding to load them from and which offset.
+    As of now, we are hard coding the vertex data directly in the vertex shader, so we'll configure
+    the struct to specifyt that there is no vertex data for now.*/
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+    vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertexInputInfo.vertexBindingDescriptionCount = 0;
+    vertexInputInfo.pVertexBindingDescriptions = nullptr; //Optional
+    vertexInputInfo.vertexAttributeDescriptionCount = 0;
+    vertexInputInfo.pVertexAttributeDescriptions = nullptr; //Optional
+    /*"pVertexBindingDescriptions" and "pVertexAttributeDescriptions"
+    are pointers to structs that described what is said in the previous comment*/
+
+    /*2. Input assembly : describes what kind of geometry will be drawn from the vertices
+    and if primitive restart should be enabled. So the "topology" member can have values like :
+    - VK_PRIMITIVE_TOPOLOGY_POINT_LIST : points from vertices
+    - VK_PRIMITIVE_TOPOLOGY_LINE_LIST : line from every 2 vertices without reuse.
+    - VK_PRIMITIVE_TOPOLOGY_LINE_STRIP : ernd vertex of everyline is used as start vertex for next line
+    - VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST : triangle from every 3 vertices without reuse
+    - VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP : the last two vertices of each triangle is used as the first two for the next one
+    Normally, the vertices are loaded from the vertex buffer by index in sequential order, but with an element
+    buffer you can specify the indices to use yourself. This allows you to perform optimizations like
+    reusing vertices. If you set the primitiveRestartEnable member to VK_TRUE, then it's possible to break up 
+    lines and triangles in the _STRIP topology modes by using a special index of 0xFFFF or 0xFFFFFFFF.
+    */
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
+    inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
+
+   /*3. Viewports : Describes the region of the framebuffer that the output will be rendered to.*/
+    VkViewport viewport{};
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = (float) this->_swapChainExtent.width;
+    viewport.height = (float) this->_swapChainExtent.height;
+    viewport.minDepth = 0.0f; //specify range of depth values for the framebuffer
+    viewport.maxDepth = 1.0f;
+
+    /*4. Scissor : Describes in which regions pixels will actually be stored.
+    Any pixel outside the scissor rectangles will be discarded by the rasterizer. :
+    https://vulkan-tutorial.com/images/viewports_scissors.png*/
+    VkRect2D scissor{};
+    scissor.offset = {0, 0};
+    scissor.extent = this->_swapChainExtent;
+
+    /*5. Viewport state : contains : viewport and scissor*/
+    VkPipelineViewportStateCreateInfo viewportInfo{};
+    viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewportInfo.viewportCount = 1;
+    viewportInfo.pViewports = &viewport;
+    viewportInfo.scissorCount = 1;
+    viewportInfo.pScissors = &scissor;
+
+    /*6. Rasterizer : takes geomtry shaped by the vertices from vertex shader and turns it into
+    fragments to be colored by the fragment shader.
+    Additionnaly, it performs depth testing, face culling and the scissor test. It can be configured to
+    output fragments that fill entire polygons or just edges (wireframe rendering)*/
+
+    VkPipelineRasterizationStateCreateInfo rasterizationInfo{};
+    rasterizationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterizationInfo.depthClampEnable = VK_FALSE; //fragments beyond the near and far planes are campled instead of discarded
+    rasterizationInfo.rasterizerDiscardEnable = VK_FALSE; //IF SET TO VK_TRUE  : geometry never passes trhough the rasterizer stage.
+    /*polygonMode can take 3 values 
+    - VK_POLYGON_MODE_FILL fill the area of the polygon with fragments
+    - VK_POLYGON_MODE_LINE : polygon edges are drawn as lines
+    - VK_POLYGON_MODE_POINT : polygon vertices are drawn as points
+    Any other mode requires enabling GPU feature
+    */
+    rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL; 
+    rasterizationInfo.lineWidth = 1.0f; //thickness of lines in nb of fragments. Thicker than 1.0f requires GHPU feature.
+    rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT; //type of face culling : disabled, front faces, back faces or both
+    rasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE; //vertex order for faces to be considered front-facing : clockwise or counterclockwise*
+    rasterizationInfo.depthBiasEnable = VK_FALSE;
+    rasterizationInfo.depthBiasConstantFactor = 0.0f; // Optional
+    rasterizationInfo.depthBiasClamp = 0.0f; // Optional
+    rasterizationInfo.depthBiasSlopeFactor = 0.0f; // Optional
+
+    /*7. Multisampling : one of the way to perform anti-alisaing*, it works by combining the fragment shader results of
+    multiple polygons that rasterize to the same pixel. Because it doesn't need to run the fragment shader multiple times
+    if only one polygon maps to a pixel, it is significantly less expensive tham renering to a higher resolution and then
+    downscaling. Enabling it required enabling GPU feature.
+    For now, we will keep it disable.*/
+    VkPipelineMultisampleStateCreateInfo multisampleInfo{};
+    multisampleInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisampleInfo.sampleShadingEnable = VK_FALSE;
+    multisampleInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    multisampleInfo.minSampleShading = 1.0f; //Optional
+    multisampleInfo.pSampleMask = nullptr; // Optional
+    multisampleInfo.alphaToCoverageEnable = VK_FALSE; // Optional
+    multisampleInfo.alphaToOneEnable = VK_FALSE; // Optional
+
+    /*8. Color blending : After a fragment shader has returned a color, it needs to be combined with the color that is already
+    in the framebuffer. This transformation is known as color blending and there are 2 ways to do it :
+        1. Mix the old and new value to produce a final color
+        2. Combine the old and new value using a bitwise operation
+    "VkPipelineColorBlendAttachmentState" : configuration per attached framebuffer
+    "VkPipelineColorBlendStateCreateInfo" : GLOBAL color blending settings
+    We only have on eframebuffer so we only need one VkPipelineColorBlendAttachmentState
+    If "blendEnable" is VK_FALSE, the new color from the fragment shader is passed through unmodified. Otherwise
+    mixiing operation appens
+    */
+    VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    colorBlendAttachment.blendEnable = VK_TRUE; // Optional
+    colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA; // Optional
+    colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA; // Optional
+    colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD; // Optional
+    colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE; // Optional
+    colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
+    colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD; // Optional
+
+    VkPipelineColorBlendStateCreateInfo colorBlendInfo{};
+    colorBlendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    colorBlendInfo.logicOpEnable = VK_FALSE;
+    colorBlendInfo.logicOp = VK_LOGIC_OP_COPY; // Optional
+    colorBlendInfo.attachmentCount = 1;
+    colorBlendInfo.pAttachments = &colorBlendAttachment;
+    colorBlendInfo.blendConstants[0] = 0.0f; // Optional
+    colorBlendInfo.blendConstants[1] = 0.0f; // Optional
+    colorBlendInfo.blendConstants[2] = 0.0f; // Optional
+    colorBlendInfo.blendConstants[3] = 0.0f; // Optional
+    /*If you preffer to use the second method of blending (bitwise combination), you must set "logicOpEnable" to
+    VK_TRUE and set "logicOp". Doing so will automatically disable the first method.*/
+
+    /*9. ¨Pipeline layout"
+    You can use "uniform" values in shader with "VkPipelineLayout", similar to global variables and can be changed at drawing time to change
+    shader behavior without having to recreate them*/
+    VkPipelineLayout pipelineLayout;
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.setLayoutCount = 0; // Optional
+    pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
+    pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional //other way of passing dynamic values
+    pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+    
+    if (vkCreatePipelineLayout(this->_logicalDevice, &pipelineLayoutInfo, nullptr, &this->_pipelineLayout) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create pipeline layout.");
+    }
+
+    vkDestroyShaderModule(this->_logicalDevice, vertShaderModule, nullptr);
+    vkDestroyShaderModule(this->_logicalDevice, fragShaderModule, nullptr);
 }
-
 
 void HelloTriangleApplication::_mainLoop(void) {
     while (glfwWindowShouldClose(this->_window) == false) { // poll events while window has not been ordered to close by the user
@@ -312,6 +489,7 @@ void HelloTriangleApplication::_mainLoop(void) {
 }
 
 void HelloTriangleApplication::_cleanUp(void) {
+    vkDestroyPipelineLayout(this->_logicalDevice, this->_pipelineLayout, nullptr);
     for (auto imageView : this->_swapChainImageViews) {
         vkDestroyImageView(this->_logicalDevice, imageView, nullptr);
     }

@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <iostream>
 #include <limits>
+#include <fstream>
 
 bool QueueFamilyIndices::isComplete(void) {
     return this->graphicsFamily.has_value() && this->presentFamily.has_value();
@@ -254,11 +255,50 @@ VkExtent2D UTILS_chooseSwapChainExtent(
     }
 }
 
+std::vector<char> UTILS_readFile(const std::string &path) {
+    //1. Open file
+    //seek immediatly to the end and read as binary to avoi text transformation and
+    //increase performances
+    std::ifstream file(path, std::ios::ate | std::ios::binary);
 
+    //2. Check if file is indeed open
+    if (file.is_open() == false) {
+        throw std::runtime_error("Failed to open file");
+    }
 
+    //3. Allocate buffer
+    size_t fileSize = file.tellg();
+    std::vector<char> buffer(fileSize);
 
+    //4. Seek at the beginning and read all at once
+    file.seekg(0);
+    file.read(buffer.data(), fileSize);
 
+    //5. Close file and return data
+    file.close();
+    return buffer;
+}
 
+VkShaderModule UTILS_createShaderModule( 
+    const std::vector<char> &code,
+    VkDevice logicalDevice
+) {
+    VkShaderModuleCreateInfo createInfo{};
+
+    createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    createInfo.codeSize = code.size();
+    //The code is formatted in uint32_t * array instead oof char array so we must cast.
+    //in vector, default allocator ensure the data statisfies the alignment requirements of the worst
+    // posible case so in our case it works with uint32_t
+    createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+
+    //VkShaderModule creation
+    VkShaderModule shaderModule;
+    if (vkCreateShaderModule(logicalDevice, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create shader module.");
+    }
+    return shaderModule;
+}
 
 
 

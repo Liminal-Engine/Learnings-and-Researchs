@@ -44,3 +44,8 @@ VkExtent2D UTILS_chooseSwapChainExtent(
     GLFWwindow *window,
     const VkSurfaceCapabilitiesKHR &capabilities
 );
+std::vector<char> UTILS_readFile(const std::string &path);
+VkShaderModule UTILS_createShaderModule(
+    const std::vector<char> &code,
+    VkDevice logicalDevice
+);
