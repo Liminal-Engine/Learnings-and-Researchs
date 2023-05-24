@@ -51,6 +51,7 @@ void HelloTriangleApplication::_initVulkan(void) {
     this->_createLogicalDevice();
     this->_createSwapChain();
     this->_createImageViews();
+    this->_createRenderPass();
     this->_createGraphicsPipeline();
 }
 
@@ -482,6 +483,53 @@ void HelloTriangleApplication::_createGraphicsPipeline(void) {
     vkDestroyShaderModule(this->_logicalDevice, fragShaderModule, nullptr);
 }
 
+void HelloTriangleApplication::_createRenderPass(void) {
+    // We will have only 1 color buffer attachment represented by one of the images from the swap chain
+    VkAttachmentDescription colorAttachment{};
+    colorAttachment.format = this->_swapChainImageFormat; // must match the format of the swap chain
+    colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;// we are not multisampling yet, so stick to 1 sample.
+    /*"loadOp" and "storeOp" determine what to do with the data in the attachment before and after rendering.
+    "loadOp" can be :
+        - VK_ATTACHMENT_LOAD_OP_LOAD: Preserve the existing contents of the attachment
+        - VK_ATTACHMENT_LOAD_OP_CLEAR: Clear the values to a constant at the start
+        - VK_ATTACHMENT_LOAD_OP_DONT_CARE: Existing contents are undefined, we don't care about them
+    "storeOp" can be :
+        - VK_ATTACHMENT_STORE_OP_STORE: Rendered contents will be stored in memory and can be read later.
+        - VK_ATTACHMENT_STORE_OP_DONT_CARE: Contents of the framebuffer will be undefined after the rendering operation.
+    */
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; //our app won't do anything with the stencil buffer
+    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    //Images need to be transinioed to specific layouts that are suitable for the operation that theya re going to be involved in next.
+    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    /*subpasses are subsequent rendering operations that depends on the the contents of frambuffers in previous passes
+    a single render pass can consist of multiple subpasses but we will stick to 1 for now.
+    Subpasses references are defined using the "VkAttachmentReference" struct*/
+    VkAttachmentReference colorAttachmentRef{};
+    colorAttachmentRef.attachment = 0;
+    colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    //Subpasses itself are described using the VkSubpassDescription struct
+    VkSubpassDescription subpass{};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorAttachmentRef; //indices are direclty references from the fragment shader with the "layou (location = 0) out vec4 outColor" directive
+
+    //Create the render pass itself
+    VkRenderPassCreateInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassInfo.attachmentCount = 1;
+    renderPassInfo.pAttachments = &colorAttachment;
+    renderPassInfo.subpassCount = 1;
+    renderPassInfo.pSubpasses = &subpass;
+
+    if ( vkCreateRenderPass(this->_logicalDevice, &renderPassInfo, nullptr, &this->_renderPass) != VK_SUCCESS ) {
+        throw std::runtime_error("Failed to create render pass");
+    }
+}
+
 void HelloTriangleApplication::_mainLoop(void) {
     while (glfwWindowShouldClose(this->_window) == false) { // poll events while window has not been ordered to close by the user
         glfwPollEvents();
@@ -490,6 +538,7 @@ void HelloTriangleApplication::_mainLoop(void) {
 
 void HelloTriangleApplication::_cleanUp(void) {
     vkDestroyPipelineLayout(this->_logicalDevice, this->_pipelineLayout, nullptr);
+    vkDestroyRenderPass(this->_logicalDevice, this->_renderPass, nullptr);
     for (auto imageView : this->_swapChainImageViews) {
         vkDestroyImageView(this->_logicalDevice, imageView, nullptr);
     }

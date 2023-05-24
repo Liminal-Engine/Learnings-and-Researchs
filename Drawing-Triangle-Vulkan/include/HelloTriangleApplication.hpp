@@ -36,6 +36,7 @@ class HelloTriangleApplication {
             void _createLogicalDevice(void);
             void _createSwapChain(void);
             void _createImageViews(void);
+            void _createRenderPass(void);
             void _createGraphicsPipeline(void);
 
 
@@ -58,6 +59,6 @@ class HelloTriangleApplication {
         VkExtent2D _swapChainExtent;
         std::vector<VkImageView> _swapChainImageViews;
 
+        VkRenderPass _renderPass;
         VkPipelineLayout _pipelineLayout;
-
 };
