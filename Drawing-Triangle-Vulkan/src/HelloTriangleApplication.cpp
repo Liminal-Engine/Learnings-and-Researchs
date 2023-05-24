@@ -364,10 +364,10 @@ void HelloTriangleApplication::_createGraphicsPipeline(void) {
     reusing vertices. If you set the primitiveRestartEnable member to VK_TRUE, then it's possible to break up 
     lines and triangles in the _STRIP topology modes by using a special index of 0xFFFF or 0xFFFFFFFF.
     */
-    VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
-    inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateInfo{};
+    inputAssemblyStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    inputAssemblyStateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    inputAssemblyStateInfo.primitiveRestartEnable = VK_FALSE;
 
    /*3. Viewports : Describes the region of the framebuffer that the output will be rendered to.*/
     VkViewport viewport{};
@@ -386,12 +386,12 @@ void HelloTriangleApplication::_createGraphicsPipeline(void) {
     scissor.extent = this->_swapChainExtent;
 
     /*5. Viewport state : contains : viewport and scissor*/
-    VkPipelineViewportStateCreateInfo viewportInfo{};
-    viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    viewportInfo.viewportCount = 1;
-    viewportInfo.pViewports = &viewport;
-    viewportInfo.scissorCount = 1;
-    viewportInfo.pScissors = &scissor;
+    VkPipelineViewportStateCreateInfo viewportStateInfo{};
+    viewportStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewportStateInfo.viewportCount = 1;
+    viewportStateInfo.pViewports = &viewport;
+    viewportStateInfo.scissorCount = 1;
+    viewportStateInfo.pScissors = &scissor;
 
     /*6. Rasterizer : takes geomtry shaped by the vertices from vertex shader and turns it into
     fragments to be colored by the fragment shader.
@@ -467,18 +467,73 @@ void HelloTriangleApplication::_createGraphicsPipeline(void) {
     /*9. ¨Pipeline layout"
     You can use "uniform" values in shader with "VkPipelineLayout", similar to global variables and can be changed at drawing time to change
     shader behavior without having to recreate them*/
-    VkPipelineLayout pipelineLayout;
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 0; // Optional
     pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
     pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional //other way of passing dynamic values
     pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+
+    /*While most of the pipeline state needs to be baked into the pipeline state,
+    a limited amount of the state can actually be changed without recreating the
+    pipeline at draw time. Examples are the size of the viewport, line width and blend constants.
+    If you want to use dynamic state and keep these properties out, then you'll have to fill in a
+    VkPipelineDynamicStateCreateInfo structure like this:*/
+    std::vector<VkDynamicState> dynamicStates = {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR
+    };
+
+    VkPipelineDynamicStateCreateInfo dynamicState{};
+    dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+    dynamicState.pDynamicStates = dynamicStates.data();
     
     if (vkCreatePipelineLayout(this->_logicalDevice, &pipelineLayoutInfo, nullptr, &this->_pipelineLayout) != VK_SUCCESS) {
         throw std::runtime_error("Failed to create pipeline layout.");
     }
 
+    VkGraphicsPipelineCreateInfo pipelineInfo{};
+    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    //Here is where we actually bind all the created stages to the pipeline :
+    pipelineInfo.stageCount = 2;
+    pipelineInfo.pStages = shaderStages;
+    pipelineInfo.pVertexInputState = &vertexInputInfo;
+    pipelineInfo.pInputAssemblyState = &inputAssemblyStateInfo;
+    pipelineInfo.pViewportState = &viewportStateInfo;
+    pipelineInfo.pRasterizationState = &rasterizationInfo;
+    pipelineInfo.pMultisampleState = &multisampleInfo;
+    pipelineInfo.pDepthStencilState = nullptr; // Optional
+    pipelineInfo.pColorBlendState = &colorBlendInfo;
+    pipelineInfo.pDynamicState = &dynamicState;
+    //then, we reference the pipeline layout which is a Vulkan handle rather than a struct pointer :
+    pipelineInfo.layout = this->_pipelineLayout;
+    ////Reference to the render oass abd the index of the subpass where this graphics pipeline will be used.
+    pipelineInfo.renderPass = this->_renderPass;
+    pipelineInfo.subpass = 0;
+    /*Vulkan allow you to create a new graphics pipeline by deriving from an existing pipeline
+    The idea of pipeline derivatives is that it is less expensive to set up pipelines when they have much
+    functionality in common with an existing pipeline and switching between pipelines from the same
+    parent can also be done quicker.
+    These values are only used if the VK_PIPELINE_CREATE_DERIVATIVE_BIT flag is also specified in
+    the flags field of VkGraphicsPipelineCreateInfo.*/
+    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
+    pipelineInfo.basePipelineIndex = -1; // Optional
+
+    //Create the graphics pipeline :
+    /*The function is actually designed to take multiple VkGraphicsPipelineCreateInfo objects and create multiple
+    VkPipeline objects in a single call. The second parameter, for which we've passed the VK_NULL_HANDLE argument,
+    references an optional VkPipelineCache object. A pipeline cache can be used to store and reuse data relevant
+    to pipeline creation across multiple calls to vkCreateGraphicsPipelines and even across program executions
+    if the cache is stored to a file. This makes it possible to significantly speed up pipeline creation at
+    a later time.*/
+    // if ( vkCreateGraphicsPipelines(this->_logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->_graphicsPipeline) != VK_SUCCESS) {
+    //     throw std::runtime_error("Failed to create graphics pipeline");
+    // }
+
+    if (vkCreateGraphicsPipelines(this->_logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->_graphicsPipeline) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create graphics pipeline!");
+    }
     vkDestroyShaderModule(this->_logicalDevice, vertShaderModule, nullptr);
     vkDestroyShaderModule(this->_logicalDevice, fragShaderModule, nullptr);
 }
@@ -537,6 +592,7 @@ void HelloTriangleApplication::_mainLoop(void) {
 }
 
 void HelloTriangleApplication::_cleanUp(void) {
+    vkDestroyPipeline(this->_logicalDevice, this->_graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(this->_logicalDevice, this->_pipelineLayout, nullptr);
     vkDestroyRenderPass(this->_logicalDevice, this->_renderPass, nullptr);
     for (auto imageView : this->_swapChainImageViews) {

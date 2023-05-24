@@ -61,4 +61,6 @@ class HelloTriangleApplication {
 
         VkRenderPass _renderPass;
         VkPipelineLayout _pipelineLayout;
+
+        VkPipeline _graphicsPipeline;
 };
