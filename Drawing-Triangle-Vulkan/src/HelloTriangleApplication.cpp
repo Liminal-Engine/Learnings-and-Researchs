@@ -53,6 +53,7 @@ void HelloTriangleApplication::_initVulkan(void) {
     this->_createImageViews();
     this->_createRenderPass();
     this->_createGraphicsPipeline();
+    this->_createFrameBuffers();
 }
 
 void HelloTriangleApplication::_createInstance(void) {
@@ -585,6 +586,30 @@ void HelloTriangleApplication::_createRenderPass(void) {
     }
 }
 
+void HelloTriangleApplication::_createFrameBuffers(void) {
+    //1. Resizing all the container to hold all of the framebuffer
+    this->_swapChainFrameBuffers.resize(this->_swapChainImageViews.size());
+    //2. Iterate through the image views and create a framebuffer for each of them
+    for (size_t i = 0; i < this->_swapChainImageViews.size(); i++) {
+        VkImageView attachments[] = {
+            this->_swapChainImageViews[i]
+        };
+        VkFramebufferCreateInfo frameBufferInfo{};
+        frameBufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        frameBufferInfo.renderPass = this->_renderPass;
+        //Specify the "VkImageView" objects that should be bound to the respective attachment descriptions in the render pass "pAttachment" array
+        frameBufferInfo.attachmentCount = 1;
+        frameBufferInfo.pAttachments = attachments;
+        frameBufferInfo.width = this->_swapChainExtent.width;
+        frameBufferInfo.height = this->_swapChainExtent.height;
+        frameBufferInfo.layers = 1; //Number of layers in image arrays
+
+        if ( vkCreateFramebuffer(this->_logicalDevice, &frameBufferInfo, nullptr, &this->_swapChainFrameBuffers[i]) != VK_SUCCESS ) {
+            throw std::runtime_error("Failed to create framebuffer");
+        }
+    }
+}
+
 void HelloTriangleApplication::_mainLoop(void) {
     while (glfwWindowShouldClose(this->_window) == false) { // poll events while window has not been ordered to close by the user
         glfwPollEvents();
@@ -592,6 +617,9 @@ void HelloTriangleApplication::_mainLoop(void) {
 }
 
 void HelloTriangleApplication::_cleanUp(void) {
+    for (auto frameBuffer : this->_swapChainFrameBuffers) {
+        vkDestroyFramebuffer(this->_logicalDevice, frameBuffer, nullptr);
+    }
     vkDestroyPipeline(this->_logicalDevice, this->_graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(this->_logicalDevice, this->_pipelineLayout, nullptr);
     vkDestroyRenderPass(this->_logicalDevice, this->_renderPass, nullptr);

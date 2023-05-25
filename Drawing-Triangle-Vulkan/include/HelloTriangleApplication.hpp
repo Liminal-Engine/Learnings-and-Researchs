@@ -38,6 +38,7 @@ class HelloTriangleApplication {
             void _createImageViews(void);
             void _createRenderPass(void);
             void _createGraphicsPipeline(void);
+            void _createFrameBuffers(void);
 
 
         void _mainLoop(void);
@@ -63,4 +64,6 @@ class HelloTriangleApplication {
         VkPipelineLayout _pipelineLayout;
 
         VkPipeline _graphicsPipeline;
+
+        std::vector<VkFramebuffer> _swapChainFrameBuffers;
 };
