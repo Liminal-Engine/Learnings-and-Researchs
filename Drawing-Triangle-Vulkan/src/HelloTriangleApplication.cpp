@@ -66,7 +66,7 @@ void HelloTriangleApplication::recordCommandBuffer(VkCommandBuffer commandBuffer
     /*We fnially begin the render pass. All of the functions that record commands can be recognized by theyr "vkCmd" prefix.
     They return void so no error handling.
     The 3rd parameter controls how the drawinf command within the rendere pass will be provided. It can be 1 of 2 values :
-    - VK_SUBPASS_CONTENTS_INLINE : The render pass commands will be embedded in the primary command buffer itself and no secondary coimmand buffers will be executed.
+    - VK_SUBPASS_CONTENTS_INLINE : The render pass commands will be embedded in the primary command buffer itself and no secondary command buffers will be executed.
     - VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS : The render pass commands will be executed from secondary command buffers.
     We won't be using secondary command buffers, so we'll go with the first option*/
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
