@@ -305,7 +305,6 @@ VkShaderModule UTILS_createShaderModule(
 
 
 
-
 // void pickPhysicalDevice() {
 //     ...
 

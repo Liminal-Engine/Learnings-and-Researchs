@@ -24,6 +24,7 @@ class HelloTriangleApplication {
     public:
         void run(void);
         HelloTriangleApplication(void);
+        void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
     private:
         void _initWindow(void);
@@ -39,6 +40,8 @@ class HelloTriangleApplication {
             void _createRenderPass(void);
             void _createGraphicsPipeline(void);
             void _createFrameBuffers(void);
+            void _createCommandPool(void);
+            void _createCommandBuffer(void);
 
 
         void _mainLoop(void);
@@ -66,4 +69,8 @@ class HelloTriangleApplication {
         VkPipeline _graphicsPipeline;
 
         std::vector<VkFramebuffer> _swapChainFrameBuffers;
-};
+
+        VkCommandPool _commandPool;
+        //Will implicitly freed when their associated command pool is destroyed
+        VkCommandBuffer _commandBuffer;
+};;
