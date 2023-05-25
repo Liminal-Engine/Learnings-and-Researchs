@@ -152,6 +152,7 @@ void HelloTriangleApplication::_initVulkan(void) {
     this->_createFrameBuffers();
     this->_createCommandPool();
     this->_createCommandBuffer();
+    this->_createSyncObjects();
 }
 
 void HelloTriangleApplication::_createInstance(void) {
@@ -744,13 +745,39 @@ void HelloTriangleApplication::_createCommandBuffer(void) {
     }
 }
 
+void HelloTriangleApplication::_createSyncObjects(void) {
+    /*Here we will be creating our 2 sempahores and our fence.
+    Creating a semaphore require to fill in the "VkSemaphoreCreateInfo" struct. The current version of the API
+    doesn't actually have any required fields besides "sType"*/
+    VkSemaphoreCreateInfo semaphoreInfo{};
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    //Creating a fence require to fil in a "VkFenceCreateInfo" struct, only "sType" is mendatory
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    if (
+        vkCreateSemaphore(this->_logicalDevice, &semaphoreInfo, nullptr, &this->_imageAvailableSemaphore) != VK_SUCCESS ||
+        vkCreateSemaphore(this->_logicalDevice, &semaphoreInfo, nullptr, &this->_renderFinishedSemaphore) != VK_SUCCESS ||
+        vkCreateFence(this->_logicalDevice, &fenceInfo, nullptr, &this->_inFlightFence) != VK_SUCCESS
+    )  {
+        throw std::runtime_error("Failed to create sempahores or fences");
+    }
+}
+
+void HelloTriangleApplication::drawFrame(void) {
+
+}
+
 void HelloTriangleApplication::_mainLoop(void) {
     while (glfwWindowShouldClose(this->_window) == false) { // poll events while window has not been ordered to close by the user
         glfwPollEvents();
+        this->drawFrame();
     }
 }
 
 void HelloTriangleApplication::_cleanUp(void) {
+    vkDestroySemaphore(this->_logicalDevice, this->_imageAvailableSemaphore, nullptr);
+    vkDestroySemaphore(this->_logicalDevice, this->_renderFinishedSemaphore, nullptr);
+    vkDestroyFence(this->_logicalDevice, this->_inFlightFence, nullptr);
     vkDestroyCommandPool(this->_logicalDevice, this->_commandPool, nullptr);
     for (auto frameBuffer : this->_swapChainFrameBuffers) {
         vkDestroyFramebuffer(this->_logicalDevice, frameBuffer, nullptr);

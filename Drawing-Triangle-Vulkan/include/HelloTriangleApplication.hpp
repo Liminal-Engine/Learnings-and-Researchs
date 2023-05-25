@@ -25,6 +25,7 @@ class HelloTriangleApplication {
         void run(void);
         HelloTriangleApplication(void);
         void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+        void drawFrame(void);
 
     private:
         void _initWindow(void);
@@ -42,6 +43,7 @@ class HelloTriangleApplication {
             void _createFrameBuffers(void);
             void _createCommandPool(void);
             void _createCommandBuffer(void);
+            void _createSyncObjects(void);
 
 
         void _mainLoop(void);
@@ -73,4 +75,8 @@ class HelloTriangleApplication {
         VkCommandPool _commandPool;
         //Will implicitly freed when their associated command pool is destroyed
         VkCommandBuffer _commandBuffer;
+
+        VkSemaphore _imageAvailableSemaphore;
+        VkSemaphore _renderFinishedSemaphore;
+        VkFence _inFlightFence;
 };;
