@@ -1,0 +1,42 @@
+#pragma once
+
+#include "window/WindowWrapper.hpp"
+#include "vulkan/device/DeviceWrapper.hpp"
+
+#include <vector>
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
+
+#ifdef NDEBUG //if NO DEBUG
+    const bool ENABLE_VALIDATION_LAYERS = false
+#else //if DEBUG
+    const bool ENABLE_VALIDATION_LAYERS = true;
+#endif
+
+namespace vulkan {
+    //Vulkan wrapper class
+    class VulkanWrapper {
+        public:
+            VulkanWrapper(void);
+            VulkanWrapper(const window::WindowWrapper &windowWrapper);
+            ~VulkanWrapper(void);
+
+        private:
+            static VkInstance _createInstance(
+                const char *appName,
+                const char *engineName,
+                const window::WindowWrapper &windowWrapper
+            );
+            static VkSurfaceKHR _createSurface(
+                const VkInstance &instance,
+                GLFWwindow *GLFWWindow
+            );
+            VkInstance _instance;
+            VkSurfaceKHR _surface;
+
+            device::DeviceWrapper _deviceWrapper;
+            
+    };
+
+}

@@ -856,7 +856,6 @@ void HelloTriangleApplication::drawFrame(void) {
     //Submits the request to present an image to the swap chain. We'll implement error handling later.
     vkQueuePresentKHR(this->_presentQueue, &presentInfo);
 }
-
 void HelloTriangleApplication::_mainLoop(void) {
     while (glfwWindowShouldClose(this->_window) == false) { // poll events while window has not been ordered to close by the user
         glfwPollEvents();
