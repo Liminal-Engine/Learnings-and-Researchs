@@ -88,6 +88,8 @@
     "optional": "cpp",
     "chrono": "cpp",
     "ctime": "cpp",
-    "ratio": "cpp"
+    "ratio": "cpp",
+    "span": "cpp",
+    "sstream": "cpp"
   }
 }

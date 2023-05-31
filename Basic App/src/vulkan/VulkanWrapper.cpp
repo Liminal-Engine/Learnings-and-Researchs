@@ -17,11 +17,16 @@ namespace vulkan {
 
     VulkanWrapper::VulkanWrapper(const window::WindowWrapper &windowWrapper)
     :
-    _instance{this->_createInstance("Basic App", "Liminal", windowWrapper)},
-    _surface{this->_createSurface(
+    _instance{this->_STATIC_createInstance(
+        "Basic App",
+        "Liminal",
+        windowWrapper
+    )},
+    _surface{this->_STATIC_createSurface(
         this->_instance,
         windowWrapper.getGLFWWindow())
-    }
+    },
+    _deviceWrapper(device::DeviceWrapper(this->_instance))
     {
         // //1. Init Vulkan instance
         //     //1.1 Get the required extensions
@@ -35,13 +40,18 @@ namespace vulkan {
     }
 
     VulkanWrapper::~VulkanWrapper(void) {
+        this->_deviceWrapper.cleanUp();
         vkDestroySurfaceKHR(this->_instance, this->_surface, nullptr);
         vkDestroyInstance(this->_instance, nullptr);
     }
 
+    // void VulkanWrapper::cleanUp(void) {
+        
+    // }
+
     // Private
     //Static method
-    VkInstance VulkanWrapper::_createInstance(
+    VkInstance VulkanWrapper::_STATIC_createInstance(
         const char *appName,
         const char *engineName,
         const window::WindowWrapper &windowWrapper
@@ -83,7 +93,7 @@ namespace vulkan {
     }
 
     //Static method
-    VkSurfaceKHR VulkanWrapper::_createSurface(
+    VkSurfaceKHR VulkanWrapper::_STATIC_createSurface(
         const VkInstance &instance,
         GLFWwindow *GLFWWindow
     ) {

@@ -23,12 +23,12 @@ namespace vulkan {
             ~VulkanWrapper(void);
 
         private:
-            static VkInstance _createInstance(
+            static VkInstance _STATIC_createInstance(
                 const char *appName,
                 const char *engineName,
                 const window::WindowWrapper &windowWrapper
             );
-            static VkSurfaceKHR _createSurface(
+            static VkSurfaceKHR _STATIC_createSurface(
                 const VkInstance &instance,
                 GLFWwindow *GLFWWindow
             );
@@ -36,7 +36,6 @@ namespace vulkan {
             VkSurfaceKHR _surface;
 
             device::DeviceWrapper _deviceWrapper;
-            
     };
 
 }

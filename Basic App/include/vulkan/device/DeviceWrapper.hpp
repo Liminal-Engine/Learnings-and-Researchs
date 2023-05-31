@@ -10,6 +10,8 @@ namespace vulkan::device {
         public:
             DeviceWrapper(void);
             DeviceWrapper(const VkInstance &instance);
+            ~DeviceWrapper();
+            void cleanUp(void);
 
         private:
 
@@ -18,18 +20,36 @@ namespace vulkan::device {
             };
 
             //Init methods
-            VkPhysicalDevice _getPhysicalDevice(const VkInstance &instance);
+            VkPhysicalDevice _pickPhysicalDevice(
+                const VkInstance &instance
+            );            
+
+
             //Get the queue families properties of a given physical device
             static std::vector<VkQueueFamilyProperties>
-            _STATICgetQueueFamiliesProps(
+            _STATIC_getQueueFamiliesProps(
                 const VkPhysicalDevice &physicalDevice
             );
            
-            void _createLogicalDevice(void);
+            VkDevice _createLogicalDevice(
+                const VkPhysicalDevice &physicalDevice
+            );
+            static VkQueue _STATIC_createQueue(
+                const VkDevice &logicalDevice,
+                uint32_t queueFamilyIndex
+            );
+            static bool _STATIC_checkDeviceQueueFamiliesSuitability(
+                const VkQueueFamilyProperties &deviceQueueFamiliesProps
+            );
+            static bool _STATIC_checkPhysicalDeviceExtensionsSuitability(
+                const VkPhysicalDevice &physicalDevice,
+                const std::vector<const char *> &requiredExtensions
+            );
 
-            VkPhysicalDevice _physicalDevice;
             QueueFamilies _queueFamilies;
+            VkPhysicalDevice _physicalDevice;
             VkDevice _logicalDevice;
+            VkQueue _graphicsQueue;
     };
 
 }
