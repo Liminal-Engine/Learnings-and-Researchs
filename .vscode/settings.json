@@ -90,6 +90,8 @@
     "ctime": "cpp",
     "ratio": "cpp",
     "span": "cpp",
-    "sstream": "cpp"
+    "sstream": "cpp",
+    "codecvt": "cpp",
+    "iomanip": "cpp"
   }
 }

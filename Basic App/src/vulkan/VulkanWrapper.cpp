@@ -11,7 +11,8 @@ namespace vulkan {
     :
     _instance(VK_NULL_HANDLE),
     _surface(VK_NULL_HANDLE),
-    _deviceWrapper()
+    _deviceWrapper(),
+    _pipelineWrapper()
     {
     }
 
@@ -32,6 +33,9 @@ namespace vulkan {
         windowWrapper.getFrameBufferSize(),
         this->_surface,
         this->_deviceWrapper.getDeviceQueueFamilies()
+    )},
+    _pipelineWrapper{pipeline::PipelineWrapper(
+        this->_deviceWrapper.getLogicalDevice(), "./shaders"
     )}
     {
         // //1. Init Vulkan instance
@@ -46,6 +50,7 @@ namespace vulkan {
     }
 
     VulkanWrapper::~VulkanWrapper(void) {
+        this->_pipelineWrapper.cleanUp(this->_deviceWrapper.getLogicalDevice());
         this->_swapChainWrapper.cleanUp(this->_deviceWrapper.getLogicalDevice());
         this->_deviceWrapper.cleanUp();
         vkDestroySurfaceKHR(this->_instance, this->_surface, nullptr);
