@@ -53,9 +53,15 @@ namespace vulkan::swap_chain {
                 const VkDevice &logicalDevice
             );
 
-            VkSwapchainKHR _swapChain;
-            std::vector<VkImage> _swapChainImages;
+            std::vector<VkImageView> _createImageViews(
+                const VkDevice &logicalDevice
+            );
 
+            VkFormat _imageFormat;
+            VkExtent2D _extent;
+            VkSwapchainKHR _swapChain;
+            std::vector<VkImage> _images;
+            std::vector<VkImageView> _imageViews;
     };
 
 }

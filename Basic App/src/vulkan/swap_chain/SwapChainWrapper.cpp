@@ -24,14 +24,16 @@ namespace vulkan::swap_chain {
         surface,
         deviceQueueFamilies
     )},
-    _swapChainImages{
-        this->_createSwapChainImages(deviceWrapper.getLogicalDevice())
-    }
+    _images{this->_createSwapChainImages(deviceWrapper.getLogicalDevice())},
+    _imageViews{this->_createImageViews(deviceWrapper.getLogicalDevice())}
     {
         
     }
     
     void SwapChainWrapper::cleanUp(const VkDevice &logicalDevice) {
+        for (const VkImageView &imageView : this->_imageViews) {
+            vkDestroyImageView(logicalDevice, imageView, nullptr);
+        }
         vkDestroySwapchainKHR(logicalDevice, this->_swapChain, nullptr);
     }
 
@@ -143,10 +145,11 @@ namespace vulkan::swap_chain {
         VkSurfaceFormatKHR surfaceFormat = this->_getOptimalSurfaceFormat(
             swapChainSupports.formats
         );
+        this->_imageFormat = surfaceFormat.format;
         VkPresentModeKHR presentMode = this->_getOptimalPresentMode(
             swapChainSupports.presentModes
         );
-        VkExtent2D extent = this->_getOptimalSwapExtent(
+        this->_extent = this->_getOptimalSwapExtent(
             swapChainSupports.capabilities,
             windowFrameBufferSize
         );
@@ -167,7 +170,7 @@ namespace vulkan::swap_chain {
         createInfo.minImageCount = nImages;
         createInfo.imageFormat = surfaceFormat.format;
         createInfo.imageColorSpace = surfaceFormat.colorSpace;
-        createInfo.imageExtent = extent;
+        createInfo.imageExtent = this->_extent;
         createInfo.imageArrayLayers = 1; //AMount of layers each image is composed of. Always unless 3D stereostopic 3D app
         createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
         //If you checked your devices correctly, they should all have a value
@@ -224,6 +227,38 @@ namespace vulkan::swap_chain {
             images.data()
         );
         return images;
+    }
+
+    std::vector<VkImageView> SwapChainWrapper::_createImageViews(
+        const VkDevice &logicalDevice
+    ) {
+        std::vector<VkImageView> imageViews(this->_images.size());
+        // this->_imageViews.resize(this->_images.size());
+
+        for (size_t i = 0; i < this->_imageViews.size(); i++) {
+            VkImageViewCreateInfo createInfo{};
+
+            createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            createInfo.image = this->_images[i];
+            createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            createInfo.format = this->_imageFormat;
+            createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+            createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            createInfo.subresourceRange.baseMipLevel = 0;
+            createInfo.subresourceRange.levelCount = 1;
+            createInfo.subresourceRange.baseArrayLayer = 0;
+            createInfo.subresourceRange.layerCount = 1;
+
+            if (vkCreateImageView(
+                logicalDevice, &createInfo, nullptr, &imageViews[i]
+            ) != VK_SUCCESS) {
+                throw std::runtime_error("Failed to create an image view");
+            }
+        }
+        return imageViews;
     }
 
 } // namespace vulkan::swap_chain
