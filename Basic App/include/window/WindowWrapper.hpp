@@ -13,10 +13,15 @@ namespace window {
             
             bool shouldClose(void) const;
             void pollEvents(void) const;
-            const std::vector<const char *> getRequiredVulkanInstanceExtensions(void) const;
+            
+            std::vector<const char *>
+            getRequiredVulkanInstanceExtensions(void) const;
+
+            VkExtent2D getFrameBufferSize(void) const;
+
 
             //Getters
-            GLFWwindow *getGLFWWindow(void) const;
+            GLFWwindow *getGLFWWindow(void) const;            
 
         private:
             GLFWwindow *_GLFWwindow;

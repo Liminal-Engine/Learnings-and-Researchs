@@ -2,6 +2,7 @@
 
 #include "window/WindowWrapper.hpp"
 #include "vulkan/device/DeviceWrapper.hpp"
+#include "vulkan/swap_chain/SwapChainWrapper.hpp"
 
 #include <vector>
 #define GLFW_INCLUDE_VULKAN
@@ -36,6 +37,7 @@ namespace vulkan {
             VkSurfaceKHR _surface;
 
             device::DeviceWrapper _deviceWrapper;
+            swap_chain::SwapChainWrapper _swapChainWrapper;
     };
 
 }

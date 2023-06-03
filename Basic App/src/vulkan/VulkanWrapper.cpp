@@ -11,7 +11,7 @@ namespace vulkan {
     :
     _instance(VK_NULL_HANDLE),
     _surface(VK_NULL_HANDLE),
-    _deviceWrapper(nullptr)
+    _deviceWrapper()
     {
     }
 
@@ -26,7 +26,13 @@ namespace vulkan {
         this->_instance,
         windowWrapper.getGLFWWindow())
     },
-    _deviceWrapper(device::DeviceWrapper(this->_instance))
+    _deviceWrapper{device::DeviceWrapper(this->_instance, this->_surface)},
+    _swapChainWrapper{swap_chain::SwapChainWrapper(
+        this->_deviceWrapper,
+        windowWrapper.getFrameBufferSize(),
+        this->_surface,
+        this->_deviceWrapper.getDeviceQueueFamilies()
+    )}
     {
         // //1. Init Vulkan instance
         //     //1.1 Get the required extensions
@@ -40,6 +46,7 @@ namespace vulkan {
     }
 
     VulkanWrapper::~VulkanWrapper(void) {
+        this->_swapChainWrapper.cleanUp(this->_deviceWrapper.getLogicalDevice());
         this->_deviceWrapper.cleanUp();
         vkDestroySurfaceKHR(this->_instance, this->_surface, nullptr);
         vkDestroyInstance(this->_instance, nullptr);

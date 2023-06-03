@@ -22,11 +22,22 @@ namespace window {
 
     void WindowWrapper::pollEvents(void) const { glfwPollEvents(); }
 
-    const std::vector<const char *> WindowWrapper::getRequiredVulkanInstanceExtensions(void) const {
+    std::vector<const char *> WindowWrapper::getRequiredVulkanInstanceExtensions(void) const {
         uint32_t extensionCount;
         const char ** GLFWExtensionsCStr = glfwGetRequiredInstanceExtensions(&extensionCount);
      
         return std::vector<const char *>(GLFWExtensionsCStr, GLFWExtensionsCStr + extensionCount);
+    }
+
+    VkExtent2D WindowWrapper::getFrameBufferSize(void) const {
+        int width, height;
+
+        glfwGetFramebufferSize(this->_GLFWwindow, &width, &height);
+
+        return (VkExtent2D) {
+            .width = static_cast<uint32_t>(width),
+            .height = static_cast<uint32_t>(height)
+        };
     }
 
     //Getters

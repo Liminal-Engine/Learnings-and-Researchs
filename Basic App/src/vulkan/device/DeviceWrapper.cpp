@@ -1,9 +1,12 @@
 #include "vulkan/device/DeviceWrapper.hpp"
 #include "vulkan/settings_consts.hpp"
+#include "vulkan/swap_chain/SwapChainWrapper.hpp"
 
 #include <stdexcept>
 #include <set>
 #include <string>
+
+#include "vulkan/device/DeviceWrapper.hpp"
 
 namespace vulkan::device {
 
@@ -11,17 +14,19 @@ namespace vulkan::device {
     DeviceWrapper::DeviceWrapper(void)
     :
     _physicalDevice(VK_NULL_HANDLE),
-    // _queueFamilies(nullptr),
+    // QueueFamilies(nullptr),
     _logicalDevice(VK_NULL_HANDLE),
     _queueFamilies(QueueFamilies{}),
     _graphicsQueue(VK_NULL_HANDLE)
     {}
 
     //Constructor
-    DeviceWrapper::DeviceWrapper(const VkInstance &instance)
+    DeviceWrapper::DeviceWrapper(
+        const VkInstance &instance, const VkSurfaceKHR &surface
+    )
     :
-    // _queueFamilies(QueueFamilies{}),
-    _physicalDevice{this->_pickPhysicalDevice(instance)}, //this->_queueFamilies will be created in this method
+    // QueueFamilies(QueueFamilies{}),
+    _physicalDevice{this->_pickPhysicalDevice(instance, surface)}, //this->QueueFamilies will be created in this method
     _logicalDevice{this->_createLogicalDevice(this->_physicalDevice)},
     _graphicsQueue{
         this->_STATIC_createQueue(
@@ -35,15 +40,37 @@ namespace vulkan::device {
     DeviceWrapper::~DeviceWrapper(void) {
     }
 
+    //Getters
+
+    vulkan::QueueFamilies
+    DeviceWrapper::getDeviceQueueFamilies(void) const {
+        return this->_queueFamilies;
+    }
+
+    vulkan::SwapChainSupportDetails
+    DeviceWrapper::getDeviceSwapChainSupports(void) const {
+        return this->_deviceSwapChainSupportDetails;
+    }
+
+    VkPhysicalDevice DeviceWrapper::getPhysicalDevice(void) const {
+        return this->_physicalDevice;
+    }
+
+    VkDevice DeviceWrapper::getLogicalDevice(void) const {
+        return this->_logicalDevice;
+    }
+
+
     void DeviceWrapper::cleanUp(void) {
         vkDestroyDevice(this->_logicalDevice, nullptr);
     }
+
 
     // Private :
 
     //Pick an existing device to use from the computer
     VkPhysicalDevice DeviceWrapper::_pickPhysicalDevice(
-        const VkInstance &instance
+        const VkInstance &instance, const VkSurfaceKHR &surface
     ) {
         //1. Enumerate the available devices
         uint32_t nDevice = 0;
@@ -55,21 +82,29 @@ namespace vulkan::device {
         vkEnumeratePhysicalDevices(instance, &nDevice, foundDevices.data());
         //2. Check if at least one physical device is compatible
         for (const VkPhysicalDevice &device : foundDevices) { //1. For each device
-            // if (this->_STATIC_checkPhysicalDeviceExtensionsSuitability( //If device extensions are supported
-            //     device,
-            //     REQUIRED_DEVICE_EXTENSIONS
-            // ) == true) {
-                static std::vector<VkQueueFamilyProperties> queueFamiliesProps =
+            if (this->_STATIC_checkPhysicalDeviceExtensionsSuitability( //If device extensions are supported
+                device,
+                REQUIRED_DEVICE_EXTENSIONS
+            ) == true) {
+                std::vector<VkQueueFamilyProperties> queueFamiliesProps =
                 DeviceWrapper::_STATIC_getQueueFamiliesProps(device); //2. List compatible queues family props
 
-                for (uint32_t i = 0; i < queueFamiliesProps.size(); i++) { //3.  For each queue family props
-                    DeviceWrapper::QueueFamilies queueFamilies{}; 
+                // for (uint32_t i = 0; i < queueFamiliesProps.size(); i++) { //3.  For each queue family props
+                    vulkan::QueueFamilies queueFamilies =
+                    this->_STATIC_getQueueFamiliesFromProps(
+                        queueFamiliesProps, device, surface
+                    ); //Get queue families for this device
+                    vulkan::SwapChainSupportDetails swapChainSupports =
+                    vulkan::swap_chain::SwapChainWrapper::
+                    STATIC_querySupport(device, surface); //Get swap chain supports for this device
                     
-                    if (this->_STATIC_checkDeviceQueueFamiliesSuitability( //if required queue families are supported
-                        queueFamiliesProps[i]
-                    ) == true) { 
-                        queueFamilies.graphicsFamily = i;
+                    if (
+                        queueFamilies.isComplete() &&
+                        swapChainSupports.formats.empty() == false &&
+                        swapChainSupports.presentModes.empty() == false
+                    ) {
                         this->_queueFamilies = queueFamilies; //Store the compatible queue families for later use
+                        this->_deviceSwapChainSupportDetails = swapChainSupports; //Store the compatible swap chain supports
                         return device;
                     }
                 // }
@@ -125,7 +160,10 @@ on the computer");
             .queueCreateInfoCount = 1,
             .pQueueCreateInfos = &queueCreateInfo,
             .enabledLayerCount = 0,
+            .enabledExtensionCount = static_cast<uint32_t>(REQUIRED_DEVICE_EXTENSIONS.size()),
+            .ppEnabledExtensionNames = REQUIRED_DEVICE_EXTENSIONS.data(),
             .pEnabledFeatures = &features,
+
         };
         if (ENABLE_VALIDATION_LAYERS) {
             createInfo.enabledLayerCount = LAYER_COUNT;
@@ -153,11 +191,36 @@ on the computer");
         return queue;
     }
 
-    //Check if a device is suitable
-    bool DeviceWrapper::_STATIC_checkDeviceQueueFamiliesSuitability(
-        const VkQueueFamilyProperties &deviceQueueFamiliesProps
+    //get queue families from all queue famlilies props
+    vulkan::QueueFamilies DeviceWrapper::_STATIC_getQueueFamiliesFromProps(
+        const std::vector<VkQueueFamilyProperties> &queueFamiliesProps,
+        const VkPhysicalDevice &physicalDevice,
+        const VkSurfaceKHR &surface
     ) {
-        return (deviceQueueFamiliesProps.queueFlags & VK_QUEUE_GRAPHICS_BIT); //graphics commands compatibility
+        vulkan::QueueFamilies queueFamilies{};
+
+        VkBool32 presentSupport = false;
+
+        for (
+            uint32_t i = 0;
+            i < queueFamiliesProps.size() || queueFamilies.isComplete() == false;
+            i++
+        ) { //3.  For each queue family props
+            if (presentSupport == false) {
+                vkGetPhysicalDeviceSurfaceSupportKHR(
+                    physicalDevice, i, surface, &presentSupport
+                );
+                if (presentSupport == true) {
+                    queueFamilies.presentFamily = i;                
+                }
+            }
+            if (queueFamilies.graphicsFamily.has_value() == false) {
+                if (queueFamiliesProps[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) { //graphics commands compatibility                    
+                    queueFamilies.graphicsFamily = i;
+                }
+            }
+        }
+        return queueFamilies;
     }
 
     //Check if a physical device meets the required extensions
