@@ -21,7 +21,7 @@ namespace window {
 
 
             //Getters
-            GLFWwindow *getGLFWWindow(void) const;            
+            GLFWwindow *getGLFWWindow(void) const;
 
         private:
             GLFWwindow *_GLFWwindow;

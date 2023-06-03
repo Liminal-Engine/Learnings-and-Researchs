@@ -1,5 +1,5 @@
-#ifndef VULKAN__SWAP_CHAIN__SWAPCHAINWRAPPER_H
-#define VULKAN__SWAP_CHAIN__SWAPCHAINWRAPPER_H
+#ifndef VULKAN___SWAP_CHAIN___SWAPCHAINWRAPPER_H
+#define VULKAN___SWAP_CHAIN___SWAPCHAINWRAPPER_H
 
 #include <vulkan/vulkan.h>
 #include <vector>
@@ -24,8 +24,6 @@ namespace vulkan::swap_chain {
             );
             void cleanUp(const VkDevice &logicalDevice);
 
-            
-            
             static SwapChainSupportDetails STATIC_querySupport(
                 const VkPhysicalDevice &device,
                 const VkSurfaceKHR &surface
@@ -50,10 +48,16 @@ namespace vulkan::swap_chain {
                 const VkSurfaceKHR &surface,
                 vulkan::QueueFamilies deviceQueueFamilies
             );
+
+            std::vector<VkImage> _createSwapChainImages(
+                const VkDevice &logicalDevice
+            );
+
             VkSwapchainKHR _swapChain;
+            std::vector<VkImage> _swapChainImages;
 
     };
 
 }
 
-#endif /*VULKAN__SWAP_CHAIN__SWAPCHAINWRAPPER_H*/
+#endif /*VULKAN___SWAP_CHAIN___SWAPCHAINWRAPPER_H*/

@@ -23,7 +23,10 @@ namespace vulkan::swap_chain {
         windowFrameBufferSize,
         surface,
         deviceQueueFamilies
-    )}
+    )},
+    _swapChainImages{
+        this->_createSwapChainImages(deviceWrapper.getLogicalDevice())
+    }
     {
         
     }
@@ -107,7 +110,7 @@ namespace vulkan::swap_chain {
         ) {
             return capabilities.currentExtent;
         }
-        return (VkExtent2D) {//make sure it's between min and max allowed externts
+        return (VkExtent2D) {//make sure it's between min and max allowed extents
             .width = std::clamp(
                 windowFrameBufferSize.width,
                 capabilities.minImageExtent.width,
@@ -201,4 +204,26 @@ namespace vulkan::swap_chain {
         return swapChain;
     }
 
-} // namespace vulkan::swap_chain 
+    std::vector<VkImage> SwapChainWrapper::_createSwapChainImages(
+        const VkDevice &logicalDevice
+    ) {
+
+        uint32_t nImages = 0;
+
+        vkGetSwapchainImagesKHR(
+            logicalDevice,
+            this->_swapChain,
+            &nImages,
+            nullptr
+        );
+        std::vector<VkImage> images(nImages);
+        vkGetSwapchainImagesKHR(
+            logicalDevice,
+            this->_swapChain,
+            &nImages,
+            images.data()
+        );
+        return images;
+    }
+
+} // namespace vulkan::swap_chain
