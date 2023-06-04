@@ -37,6 +37,12 @@ namespace vulkan::swap_chain {
         vkDestroySwapchainKHR(logicalDevice, this->_swapChain, nullptr);
     }
 
+    VkExtent2D SwapChainWrapper::getExtent(void) const {return this->_extent;}
+
+    VkFormat SwapChainWrapper::getImageFormat(void) const {
+        return this->_imageFormat;
+    }
+
 
     vulkan::SwapChainSupportDetails
     SwapChainWrapper::STATIC_querySupport(

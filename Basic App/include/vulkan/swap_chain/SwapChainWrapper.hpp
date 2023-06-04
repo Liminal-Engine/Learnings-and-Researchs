@@ -24,6 +24,9 @@ namespace vulkan::swap_chain {
             );
             void cleanUp(const VkDevice &logicalDevice);
 
+            VkExtent2D getExtent(void) const;
+            VkFormat getImageFormat(void) const;
+
             static SwapChainSupportDetails STATIC_querySupport(
                 const VkPhysicalDevice &device,
                 const VkSurfaceKHR &surface

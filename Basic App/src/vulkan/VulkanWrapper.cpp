@@ -35,7 +35,10 @@ namespace vulkan {
         this->_deviceWrapper.getDeviceQueueFamilies()
     )},
     _pipelineWrapper{pipeline::PipelineWrapper(
-        this->_deviceWrapper.getLogicalDevice(), "./shaders"
+        this->_deviceWrapper.getLogicalDevice(),
+        "./shaders/shader.vert.spv",
+        "./shaders/shader.frag.spv",
+        this->_swapChainWrapper
     )}
     {
         // //1. Init Vulkan instance
