@@ -25,9 +25,10 @@ _vulkan{vulkan::VulkanWrapper(this->_window)}
 }
 
 void App::run(void) {
-    // while (this->_window.shouldClose() == false) {
-    //     this->_window.pollEvents();
-    //     //draw frame
-    // }
+    while (this->_window.shouldClose() == false) {
+        this->_window.pollEvents();
+        this->_vulkan.drawFrame();
+    }
+    this->_vulkan.waitForDeviceToFinish();
 }
 

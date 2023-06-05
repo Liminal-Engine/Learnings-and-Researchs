@@ -26,6 +26,8 @@ namespace vulkan::swap_chain {
 
             VkExtent2D getExtent(void) const;
             VkFormat getImageFormat(void) const;
+            std::vector<VkImageView> getImageViews(void) const;
+            VkSwapchainKHR getSwapChain(void) const;
 
             static SwapChainSupportDetails STATIC_querySupport(
                 const VkPhysicalDevice &device,
@@ -60,11 +62,13 @@ namespace vulkan::swap_chain {
                 const VkDevice &logicalDevice
             );
 
+
             VkFormat _imageFormat;
             VkExtent2D _extent;
             VkSwapchainKHR _swapChain;
             std::vector<VkImage> _images;
             std::vector<VkImageView> _imageViews;
+            std::vector<VkFramebuffer> _frameBuffers;
     };
 
 }

@@ -3,7 +3,8 @@
 #include "window/WindowWrapper.hpp"
 #include "vulkan/device/DeviceWrapper.hpp"
 #include "vulkan/swap_chain/SwapChainWrapper.hpp"
-#include <vulkan/pipeline/PipelineWrapper.hpp>
+#include "vulkan/pipeline/PipelineWrapper.hpp"
+#include "vulkan/FrameRenderer.hpp"
 
 #include <vector>
 #define GLFW_INCLUDE_VULKAN
@@ -22,7 +23,11 @@ namespace vulkan {
         public:
             VulkanWrapper(void);
             VulkanWrapper(const window::WindowWrapper &windowWrapper);
-            ~VulkanWrapper(void);
+            ~VulkanWrapper();
+
+            void drawFrame(void) const;
+
+            void waitForDeviceToFinish(void) const;
 
         private:
             static VkInstance _STATIC_createInstance(
@@ -40,6 +45,7 @@ namespace vulkan {
             device::DeviceWrapper _deviceWrapper;
             swap_chain::SwapChainWrapper _swapChainWrapper;
             pipeline::PipelineWrapper _pipelineWrapper;
+            FrameRenderer _frameRenderer;
     };
 
 }

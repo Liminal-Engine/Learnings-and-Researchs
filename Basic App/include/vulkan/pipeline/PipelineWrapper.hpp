@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include <vulkan/swap_chain/SwapChainWrapper.hpp>
+#include "vulkan/swap_chain/SwapChainWrapper.hpp"
 
 namespace vulkan::pipeline {
     
@@ -31,6 +31,11 @@ namespace vulkan::pipeline {
                 const VkDevice &logicalDevice,
                 const std::string &filePath
             );
+
+            VkRenderPass getRenderPass(void) const;
+            VkViewport getViewport(void) const;
+            VkRect2D getScissor(void) const;
+            VkPipeline getGraphicsPipeline(void) const;
 
         private:
             VkShaderModule _getShaderModule(
@@ -100,6 +105,8 @@ namespace vulkan::pipeline {
 
             VkPipelineLayout _layout;
             VkRenderPass _renderPass;
+            VkViewport _viewport;
+            VkRect2D _scissor;
             VkPipeline _graphicsPipeline;
     };
 

@@ -13,6 +13,8 @@ namespace vulkan::pipeline {
     _fragmentShaderModule{VK_NULL_HANDLE},
     _layout{VK_NULL_HANDLE},
     _renderPass{VK_NULL_HANDLE},
+    _viewport{VkViewport{}},
+    _scissor{VkRect2D{}},
     _graphicsPipeline{VK_NULL_HANDLE}
     {
     }
@@ -35,6 +37,8 @@ namespace vulkan::pipeline {
         logicalDevice,
         swapChainWrapper.getImageFormat()
     )},
+    _viewport{this->_createViewport(swapChainWrapper.getExtent())},
+    _scissor{this->_createScissor(swapChainWrapper.getExtent())},
     _graphicsPipeline{this->_createGraphicsPipeline(
         logicalDevice,
         swapChainWrapper.getExtent(),
@@ -42,6 +46,8 @@ namespace vulkan::pipeline {
     )}
     {
     }
+
+
 
     void PipelineWrapper::cleanUp(const VkDevice &logicalDevice) {
         vkDestroyPipeline(logicalDevice, this->_graphicsPipeline, nullptr);
@@ -77,16 +83,29 @@ namespace vulkan::pipeline {
         );
     }
 
+    VkRenderPass PipelineWrapper::getRenderPass(void) const {
+        return this->_renderPass;
+    }
+
+    VkViewport PipelineWrapper::getViewport(void) const {
+        return this->_viewport;
+    }
+
+    VkRect2D PipelineWrapper::getScissor(void) const {
+        return this->_scissor;
+    }
+
+    VkPipeline PipelineWrapper::getGraphicsPipeline(void) const {
+        return this->_graphicsPipeline;
+    }
+
+
     //private methods
     VkShaderModule PipelineWrapper::_getShaderModule(
         const VkDevice &logicalDevice,
         const std::string &filePath
     ) const {
-        //1. Check file name formatting
-        // if (!filePath.ends_with(".vert.spv") || !filePath.ends_with(".frag.spv")) {
-        //     throw std::runtime_error("Can't load this shader file : " + filePath);
-        // }
-        //2. Read shader file as binary
+        //1. Read shader file as binary
         std::ifstream file(filePath, std::ios::ate | std::ios::binary);
 
         if (file.is_open() == false) {
@@ -97,11 +116,11 @@ namespace vulkan::pipeline {
         file.seekg(0);
         file.read(buffer.data(), fileSize);
         file.close();
-        //3. Create shader module from shader code
+        //2. Create shader module from shader code
         VkShaderModuleCreateInfo createInfo {
             .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
             .codeSize = buffer.size(),
-            .pCode = reinterpret_cast<const uint32_t *>(buffer.data()) // The bytecode pointer is a uint32_t pointer rather than a char pointer. Therefore we will need to cast the pointer with reinterpret_cast as shown below. When you perform a cast like this, you also need to ensure that the data satisfies the alignment requirements of uint32_t. Lucky for us, the data is stored in an std::vector where the default allocator already ensures that the data satisfies the worst case alignment requirements.                        
+            .pCode = reinterpret_cast<const uint32_t *>(buffer.data()) // The bytecode pointer is a uint32_t pointer rather than a char pointer. Therefore we will need to cast the pointer with reinterpret_cast as shown below. When you perform a cast like this, you also need to ensure that the data satisfies the alignment requirements of uint32_t. Lucky for us, the data is stored in an std::vector where the default allocator already ensures that the data satisfies the worst case alignment requirements.
         };
         VkShaderModule shaderModule{};
         if (vkCreateShaderModule(
@@ -172,8 +191,8 @@ namespace vulkan::pipeline {
         return (VkViewport) {
             .x = 0.0f,
             .y = 0.0f,
-            .width = (float) swapChainExtent.width,
-            .height = (float) swapChainExtent.height,
+            .width = static_cast<float>(swapChainExtent.width),
+            .height = static_cast<float>(swapChainExtent.height),
             .minDepth = 0.0f,
             .maxDepth = 1.0f
         };
@@ -304,12 +323,22 @@ namespace vulkan::pipeline {
             .colorAttachmentCount = 1,
             .pColorAttachments = &colorAttachmentRef
         };
-        VkRenderPassCreateInfo createInfo{
+        VkSubpassDependency dependency{
+            .srcSubpass = VK_SUBPASS_EXTERNAL,
+            .dstSubpass = 0,
+            .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .srcAccessMask = 0,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+        };
+        VkRenderPassCreateInfo createInfo {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
             .attachmentCount = 1,
             .pAttachments = &colorAttachment,
             .subpassCount = 1,
-            .pSubpasses = &subpass
+            .pSubpasses = &subpass,
+            .dependencyCount = 1,
+            .pDependencies = &dependency
         };
         VkRenderPass renderPass{};
 
@@ -339,10 +368,8 @@ namespace vulkan::pipeline {
         const VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo =
         this->_createInputAssemblyCreateInfo();
 
-        const VkViewport viewport = this->_createViewport(swapChainExtent);
-        const VkRect2D scissor = this->_createScissor(swapChainExtent);
         const VkPipelineViewportStateCreateInfo viewportCreateInfo =
-        this->_createViewportStateCreateInfo(&viewport, &scissor);
+        this->_createViewportStateCreateInfo(&this->_viewport, &this->_scissor);
 
         const VkPipelineRasterizationStateCreateInfo rasterizationCreateInfo =
         this->_createRasterizationStateCreateInfo();
@@ -391,5 +418,4 @@ namespace vulkan::pipeline {
         delete[] dynamicStates;
         return pipeline;
     }
-
 }

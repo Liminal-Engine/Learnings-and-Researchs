@@ -31,6 +31,9 @@ namespace vulkan::swap_chain {
     }
     
     void SwapChainWrapper::cleanUp(const VkDevice &logicalDevice) {
+        for (const VkFramebuffer &frameBuffer : this->_frameBuffers) {
+            vkDestroyFramebuffer(logicalDevice, frameBuffer, nullptr);
+        }
         for (const VkImageView &imageView : this->_imageViews) {
             vkDestroyImageView(logicalDevice, imageView, nullptr);
         }
@@ -43,6 +46,13 @@ namespace vulkan::swap_chain {
         return this->_imageFormat;
     }
 
+    std::vector<VkImageView> SwapChainWrapper::getImageViews(void) const {
+        return this->_imageViews;
+    }
+
+    VkSwapchainKHR SwapChainWrapper::getSwapChain(void) const {
+        return this->_swapChain;
+    }
 
     vulkan::SwapChainSupportDetails
     SwapChainWrapper::STATIC_querySupport(
@@ -266,5 +276,6 @@ namespace vulkan::swap_chain {
         }
         return imageViews;
     }
+
 
 } // namespace vulkan::swap_chain

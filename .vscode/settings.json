@@ -92,6 +92,7 @@
     "span": "cpp",
     "sstream": "cpp",
     "codecvt": "cpp",
-    "iomanip": "cpp"
+    "iomanip": "cpp",
+    "valarray": "cpp"
   }
 }

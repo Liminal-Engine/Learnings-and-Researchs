@@ -17,7 +17,8 @@ namespace vulkan::device {
     // QueueFamilies(nullptr),
     _logicalDevice(VK_NULL_HANDLE),
     _queueFamilies(QueueFamilies{}),
-    _graphicsQueue(VK_NULL_HANDLE)
+    _graphicsQueue(VK_NULL_HANDLE),
+    _presentQueue(VK_NULL_HANDLE)
     {}
 
     //Constructor
@@ -32,6 +33,12 @@ namespace vulkan::device {
         this->_STATIC_createQueue(
             this->_logicalDevice,
             this->_queueFamilies.graphicsFamily.value()
+        )
+    },
+    _presentQueue{
+        this->_STATIC_createQueue(
+            this->_logicalDevice,
+            this->_queueFamilies.presentFamily.value()
         )
     }
     {}
@@ -51,6 +58,15 @@ namespace vulkan::device {
     DeviceWrapper::getDeviceSwapChainSupports(void) const {
         return this->_deviceSwapChainSupportDetails;
     }
+
+    VkQueue DeviceWrapper::getGraphicsQueue(void) const {
+        return this->_graphicsQueue;
+    }
+
+    VkQueue DeviceWrapper::getPresentQueue(void) const {
+        return this->_presentQueue;
+    }
+
 
     VkPhysicalDevice DeviceWrapper::getPhysicalDevice(void) const {
         return this->_physicalDevice;

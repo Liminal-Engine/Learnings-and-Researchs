@@ -23,6 +23,8 @@ namespace vulkan::device {
             //Getters
             VkPhysicalDevice getPhysicalDevice(void) const;
             VkDevice getLogicalDevice(void) const;
+            VkQueue getGraphicsQueue(void) const;
+            VkQueue getPresentQueue(void) const;
             
             vulkan::SwapChainSupportDetails
             getDeviceSwapChainSupports(void) const;
@@ -69,6 +71,7 @@ namespace vulkan::device {
             VkPhysicalDevice _physicalDevice;
             VkDevice _logicalDevice;
             VkQueue _graphicsQueue; 
+            VkQueue _presentQueue;
     };
 
 }

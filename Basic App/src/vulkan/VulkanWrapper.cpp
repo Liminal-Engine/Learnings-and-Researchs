@@ -12,7 +12,8 @@ namespace vulkan {
     _instance(VK_NULL_HANDLE),
     _surface(VK_NULL_HANDLE),
     _deviceWrapper(),
-    _pipelineWrapper()
+    _pipelineWrapper(),
+    _frameRenderer()
     {
     }
 
@@ -39,8 +40,14 @@ namespace vulkan {
         "./shaders/shader.vert.spv",
         "./shaders/shader.frag.spv",
         this->_swapChainWrapper
+    )},
+    _frameRenderer{FrameRenderer(
+        this->_deviceWrapper,
+        this->_swapChainWrapper,
+        this->_pipelineWrapper.getRenderPass()
     )}
     {
+        //We MUST set the framebuffers before drawing anything
         // //1. Init Vulkan instance
         //     //1.1 Get the required extensions
         // const std::vector<const char *> GLFWExtensions = windowWrapper.getRequiredVulkanInstanceExtensions();
@@ -53,11 +60,24 @@ namespace vulkan {
     }
 
     VulkanWrapper::~VulkanWrapper(void) {
+        this->_frameRenderer.cleanUp(this->_deviceWrapper.getLogicalDevice());
         this->_pipelineWrapper.cleanUp(this->_deviceWrapper.getLogicalDevice());
         this->_swapChainWrapper.cleanUp(this->_deviceWrapper.getLogicalDevice());
         this->_deviceWrapper.cleanUp();
         vkDestroySurfaceKHR(this->_instance, this->_surface, nullptr);
         vkDestroyInstance(this->_instance, nullptr);
+    }
+
+    void VulkanWrapper::drawFrame(void) const {
+        this->_frameRenderer.drawFrame(
+            this->_deviceWrapper,
+            this->_pipelineWrapper,
+            this->_swapChainWrapper
+        );
+    }
+
+    void VulkanWrapper::waitForDeviceToFinish(void) const {
+        vkDeviceWaitIdle(this->_deviceWrapper.getLogicalDevice());
     }
 
     // void VulkanWrapper::cleanUp(void) {
