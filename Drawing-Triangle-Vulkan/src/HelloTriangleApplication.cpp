@@ -45,7 +45,7 @@ void HelloTriangleApplication::recordCommandBuffer(VkCommandBuffer commandBuffer
     /*Specifies which state to inherit from the calling primary command buffers. Only relevant for secondary command buffers.*/
     beginInfo.pInheritanceInfo = nullptr; //Optional
 
-    /*If command buffer already recorded, calling "vkBeginCommandBuffer will implicitly reset it. It's not possible to append commands to a buffer at a leter time."*/
+    /*If command buffer already recorded, calling "vkBeginCommandBuffer will implicitly reset it. It's not possible to append commands to a buffer at a later time."*/
     if ( vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS ) {
         throw std::runtime_error("Failed to begin recording a command buffer");
     }

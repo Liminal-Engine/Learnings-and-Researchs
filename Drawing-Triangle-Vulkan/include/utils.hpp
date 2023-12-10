@@ -29,7 +29,9 @@ bool UTILS_isDeviceSuitable(
     const VkSurfaceKHR surface,
     const std::vector<const char *> extensions
 );
+
 QueueFamilyIndices UTILS_findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
+
 SwapChainSupports UTILS_querySwapChainSupport(
     VkPhysicalDevice physicalDevice,
     VkSurfaceKHR surface
