@@ -33,7 +33,7 @@ namespace vulkanhdl {
     _queueFamilies{_loaders::_queueFamilies::_load(this->_physicalDevice, this->_surface)},
     _logicalDevice{_loaders::_logicalDevice::_load(this->_physicalDevice, this->_surface, this->_queueFamilies._toSet(), DEVICE_EXTENSIONS)},
     _queueHandlers{_loaders::_queueHandlers::_load(this->_logicalDevice, this->_queueFamilies)},
-    _swapChainImageFormat{ _swapchain::_getBestSurfaceFormat(this->_swapChainSupports._surfaceFormats) },
+    _swapChainImageFormat{_swapchain::_getBestSurfaceFormat(this->_swapChainSupports._surfaceFormats)},
     _swapChainExtent{_swapchain::_getBestExtent(this->_window, this->_swapChainSupports._surfaceCapabilities)},
     _swapChain{_loaders::_swapchain::_load(this->_logicalDevice, this->_window, this->_surface, this->_swapChainSupports, this->_queueFamilies, this->_swapChainImageFormat, this->_swapChainExtent)},
     _swapChainImagesHandlers{_loaders::_swapChainImagesHandlers::_load(this->_logicalDevice, this->_swapChain)},
