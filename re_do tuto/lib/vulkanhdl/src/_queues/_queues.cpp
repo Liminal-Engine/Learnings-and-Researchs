@@ -14,5 +14,9 @@ namespace vulkanhdl {
             return std::set<_QueueFamilyIndex_t> {this->_graphicsFamily.value(), this->_presentFamily.value()};
         }
 
+        std::vector <_QueueFamilyIndex_t> _QueueFamilies::_toVector(void) const {
+            return std::vector<_QueueFamilyIndex_t> {this->_graphicsFamily.value(), this->_presentFamily.value()};
+        }
+
     } // _queues
 } // vulkanhdl

@@ -1,5 +1,5 @@
-#ifndef VULKAN_HDL_LIB__PRIVATE___SWAPCHAINSUPPORT_HPP
-#define VULKAN_HDL_LIB__PRIVATE___SWAPCHAINSUPPORT_HPP
+#ifndef VULKAN_HDL_LIB__PRIVATE___SWAPCHAIN__SWAPCHAINSUPPORT_HPP
+#define VULKAN_HDL_LIB__PRIVATE___SWAPCHAIN__SWAPCHAINSUPPORT_HPP
 
 /**
  * @file _swapchainsupports.hpp
@@ -25,10 +25,10 @@ namespace vulkanhdl {
         /**
          * @brief _SwapChainSupports Stores the swap chain supported features
         */
-        struct _SwapChainSupports {
+        struct _Supports {
             VkSurfaceCapabilitiesKHR _surfaceCapabilities; ///< Various paremeters about related to the surface such as min/max number of images in the swap chain, min/max width and height of the image
             std::vector<VkSurfaceFormatKHR> _surfaceFormats; ///< Surface formats = pixel format and color space (does'nt include iomage width and height since already in VkSurfaceCapabilitiesKHR)
-            std::vector<VkPresentModeKHR> _presentationMode; ///< Represents the mode in which the image are presented in the swap chain (immediate, FIFO, mailbox, etc...) Each mode has its own way of working
+            std::vector<VkPresentModeKHR> _presentationModes; ///< Represents the mode in which the image are presented in the swap chain (immediate, FIFO, mailbox, etc...) Each mode has its own way of working
         };
 
         /**
@@ -38,11 +38,11 @@ namespace vulkanhdl {
          * @param surface 
          * @return _SwapChainSupports 
          */
-        _SwapChainSupports _getSwapChainSupports(
+        _Supports _getSupports(
             const VkPhysicalDevice &physicalDevice,
             const VkSurfaceKHR &surface
         );
     } // _swapchain
 } // namespace vulkanhdl
 
-#endif // VULKAN_HDL_LIB__PRIVATE___SWAPCHAINSUPPORT_HPP
+#endif // VULKAN_HDL_LIB__PRIVATE___SWAPCHAIN__SWAPCHAINSUPPORT_HPP

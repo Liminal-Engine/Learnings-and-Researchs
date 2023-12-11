@@ -25,7 +25,7 @@ _logicalDevice(VK_NULL_HANDLE)
 
 
 void HelloTriangleApplication::run(void) {
-    this->_initWindow();
+    this->_initWindow(); 
     this->_initVulkan();
     this->_mainLoop();
     this->_cleanUp();

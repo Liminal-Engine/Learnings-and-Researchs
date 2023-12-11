@@ -41,11 +41,17 @@ namespace vulkanhdl {
              */
             bool _isComplete(void) const;
             /**
-             * @brief Get the Indices Set of the queue families indices
+             * @brief Get the indices set of the queue families indices
              * 
              * @return std::set<_QueueFamilyIndex_t> The set of queue familie indices
              */
             std::set<_QueueFamilyIndex_t> _toSet(void) const;
+            /**
+             * @brief Get the indices vector of the queue families indices
+             * 
+             * @return std::vector <_QueueFamilyIndex_t> 
+             */
+            std::vector <_QueueFamilyIndex_t> _toVector(void) const;
         };
 
     } // namesapce _queues

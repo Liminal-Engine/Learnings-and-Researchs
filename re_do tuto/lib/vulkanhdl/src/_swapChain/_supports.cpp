@@ -1,15 +1,15 @@
-#include "vulkanhdl/include/_swapChain/_swapchainsupports.hpp"
+#include "vulkanhdl/include/_swapChain/_supports.hpp"
 
 #include <stdexcept>
 
 namespace vulkanhdl {
     namespace _swapchain {
 
-        _SwapChainSupports _getSwapChainSupports(
+        _Supports _getSupports(
             const VkPhysicalDevice &physicalDevice,
             const VkSurfaceKHR &surface
         ) {
-            _SwapChainSupports res{};
+            _Supports res{};
 
             // 1. Get surface capabilities
             vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &res._surfaceCapabilities);
@@ -29,8 +29,8 @@ namespace vulkanhdl {
             if (nPresentationMode == 0)
                 throw std::runtime_error("No presentation mode for the given device while creating the swap chain");
             // 3.2 TThen, create the memory space for the vector of presentation mode
-            res._presentationMode.resize(nPresentationMode);
-            vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &nPresentationMode, res._presentationMode.data());
+            res._presentationModes.resize(nPresentationMode);
+            vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &nPresentationMode, res._presentationModes.data());
             return res;
         }
 

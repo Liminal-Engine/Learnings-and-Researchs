@@ -182,9 +182,9 @@ VkPresentModeKHR UTILS_chooseSwapChainPresentMode(
     /*
     The presentation mode is aruably the MOST IMPORTANT SETTING for the swap chain, because
     it represents the actual conditions for showing images to the screen. In Vulkan, 4 modes : 
-    1. VK_PRESENT_MODE_IMMEDIATE_KHR: Imageas submitted by your application are transferred to
+    1. VK_PRESENT_MODE_IMMEDIATE_KHR: Images submitted by your application are transferred to
     the screen right away, which may result in tearing.
-    2. VK_PRESENT_MDOE_FIFO_KHR: FIFO = First In, First Out. : The swap chain is a queue where
+    2. VK_PRESENT_MODE_FIFO_KHR: FIFO = First In, First Out. : The swap chain is a queue where
     the display takes an image from the front of the queue when the display is refreshed and
     the program inserts rendred images at the back of the queue. If the queue is full then the
     program has to wait. Most similar to V-Sync. The moment when the display is refreshed is called
@@ -201,7 +201,7 @@ VkPresentModeKHR UTILS_chooseSwapChainPresentMode(
     is unblocked.
     */
    /*
-    The author thing that mailbox is the best mode because offer nice treade-off if energy usage is not
+    The author thing that mailbox is the best mode because offer nice trade-off if energy usage is not
     a concern because it allows to avoid tearing while maintaining a fairly low latency by rendering new images
     that are as up-to-date as possible right until the vertical blank., On mobile devices, we may want to use 
     FIFO_KHR cause energy usage is more important to take into consideration.
