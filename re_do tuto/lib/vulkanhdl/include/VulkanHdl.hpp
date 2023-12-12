@@ -50,6 +50,8 @@ namespace vulkanhdl {
             VkSwapchainKHR _swapChain; ///< The swap chain (e.g.) basically the queue for the images to draw
             std::vector<VkImage> _swapChainImagesHandlers; ///< Handlers of the swap chain images each in the form of a VkImage
             std::vector<VkImageView> _swapChainImagesViewsHandlers; ///< A handler of a "view" into an image. Views are required to access images. It describes how ot access it and which par of the image to access
+            VkRenderPass _renderPass; ///< Describes various infos about rendering operations in a coherant set (attachlents, subpasses, dependecies, etc...) 
+            
     };
 }
 

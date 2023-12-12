@@ -11,6 +11,7 @@
 #include "vulkanhdl/include/_loaders/_swapChain/_load.hpp"
 #include "vulkanhdl/include/_loaders/_swapChainImagesHandlers/_load.hpp"
 #include "vulkanhdl/include/_loaders/_swapChainImagesViewsHandlers/_load.hpp"
+#include "vulkanhdl/include/_loaders/_renderPass/_load.hpp"
 
 #include "vulkanhdl/include/_swapChain/_image.hpp"
 
@@ -37,7 +38,8 @@ namespace vulkanhdl {
     _swapChainExtent{_swapchain::_getBestExtent(this->_window, this->_swapChainSupports._surfaceCapabilities)},
     _swapChain{_loaders::_swapchain::_load(this->_logicalDevice, this->_window, this->_surface, this->_swapChainSupports, this->_queueFamilies, this->_swapChainImageFormat, this->_swapChainExtent)},
     _swapChainImagesHandlers{_loaders::_swapChainImagesHandlers::_load(this->_logicalDevice, this->_swapChain)},
-    _swapChainImagesViewsHandlers{_loaders::_swapChainImagesViewsHandlers::_load(this->_logicalDevice, this->_swapChainImagesHandlers, this->_swapChainImageFormat.format)}
+    _swapChainImagesViewsHandlers{_loaders::_swapChainImagesViewsHandlers::_load(this->_logicalDevice, this->_swapChainImagesHandlers, this->_swapChainImageFormat.format)},
+    _renderPass{_loaders::_renderpass::_load(this->_logicalDevice, this->_swapChainImageFormat.format)}
     {
 
     }
