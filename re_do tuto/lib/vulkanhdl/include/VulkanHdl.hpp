@@ -33,6 +33,7 @@ namespace vulkanhdl {
              * @brief Default constructor
             */
             VulkanHdl(void);
+            ~VulkanHdl();
 
         private:
             const std::string _appName; ///< Name of the application
@@ -51,7 +52,9 @@ namespace vulkanhdl {
             std::vector<VkImage> _swapChainImagesHandlers; ///< Handlers of the swap chain images each in the form of a VkImage
             std::vector<VkImageView> _swapChainImagesViewsHandlers; ///< A handler of a "view" into an image. Views are required to access images. It describes how ot access it and which par of the image to access
             VkRenderPass _renderPass; ///< Describes various infos about rendering operations in a coherant set (attachlents, subpasses, dependecies, etc...) 
-            
+            VkPipelineLayout _pipelineLayout; ///< Describes tje set of ressources that can be accessible by a related pipeline
+            VkPipeline _graphicsPipeline; ///< Describe the graphics pipeline
+
     };
 }
 

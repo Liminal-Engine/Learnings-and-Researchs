@@ -12,6 +12,8 @@
 #include "vulkanhdl/include/_loaders/_swapChainImagesHandlers/_load.hpp"
 #include "vulkanhdl/include/_loaders/_swapChainImagesViewsHandlers/_load.hpp"
 #include "vulkanhdl/include/_loaders/_renderPass/_load.hpp"
+#include "vulkanhdl/include/_loaders/_pipelineLayout/_load.hpp"
+#include "vulkanhdl/include/_loaders/_pipeline/_load.hpp"
 
 #include "vulkanhdl/include/_swapChain/_image.hpp"
 
@@ -39,9 +41,23 @@ namespace vulkanhdl {
     _swapChain{_loaders::_swapchain::_load(this->_logicalDevice, this->_window, this->_surface, this->_swapChainSupports, this->_queueFamilies, this->_swapChainImageFormat, this->_swapChainExtent)},
     _swapChainImagesHandlers{_loaders::_swapChainImagesHandlers::_load(this->_logicalDevice, this->_swapChain)},
     _swapChainImagesViewsHandlers{_loaders::_swapChainImagesViewsHandlers::_load(this->_logicalDevice, this->_swapChainImagesHandlers, this->_swapChainImageFormat.format)},
-    _renderPass{_loaders::_renderpass::_load(this->_logicalDevice, this->_swapChainImageFormat.format)}
+    _renderPass{_loaders::_renderpass::_load(this->_logicalDevice, this->_swapChainImageFormat.format)},
+    _pipelineLayout{_loaders::_pipelinelayout::_load(this->_logicalDevice)},
+    _graphicsPipeline{_loaders::_pipeline::_load(this->_logicalDevice)}
     {
 
     }
     
+    VulkanHdl::~VulkanHdl() {
+        // for (size_t i = 0; i < this->_swapChainImagesHandlers.size(); i++) {
+        //     vkDestroyImage(this->_swapChainImagesHandlers.at(i), nullptr);
+        //     vkDestroyImageView(this->_swapChainImagesViewsHandlers.at(i), nullptr);
+        // }
+        vkDestroySwapchainKHR(this->_logicalDevice, this->_swapChain, nullptr);
+        vkDestroyDevice(this->_logicalDevice, nullptr);
+        vkDestroySurfaceKHR(this->_instance, this->_surface, nullptr);
+        vkDestroyInstance(this->_instance, nullptr);
+        glfwDestroyWindow(this->_window);
+        glfwTerminate();
+    }
 }

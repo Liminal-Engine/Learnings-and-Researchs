@@ -257,7 +257,7 @@ VkExtent2D UTILS_chooseSwapChainExtent(
 
 std::vector<char> UTILS_readFile(const std::string &path) {
     //1. Open file
-    //seek immediatly to the end and read as binary to avoi text transformation and
+    //seek immediatly to the end and read as binary to avoid text transformation and
     //increase performances
     std::ifstream file(path, std::ios::ate | std::ios::binary);
 
