@@ -14,6 +14,11 @@
 #include "vulkanhdl/include/_loaders/_renderPass/_load.hpp"
 #include "vulkanhdl/include/_loaders/_pipelineLayout/_load.hpp"
 #include "vulkanhdl/include/_loaders/_pipeline/_load.hpp"
+#include "vulkanhdl/include/_loaders/_frameBuffers/_load.hpp"
+#include "vulkanhdl/include/_loaders/_commandPool/_load.hpp"
+#include "vulkanhdl/include/_loaders/_commandBuffer/_load.hpp"
+#include "vulkanhdl/include/_loaders/_semaphore/_load.hpp"
+#include "vulkanhdl/include/_loaders/_fence/_load.hpp"
 
 #include "vulkanhdl/include/_swapChain/_image.hpp"
 
@@ -24,8 +29,30 @@ const std::vector<const char *> DEVICE_EXTENSIONS = {
 };
 
 namespace vulkanhdl {
+
+    bool TMP_checkValidationLayerSupport() {
+        //1. List avialable validation layers
+        uint32_t layerCount = 0;
+        vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+        std::vector<VkLayerProperties> availableLayers(layerCount);
+        vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+        for (const char *layerName : VALIDATION_LAYERS) { //2. loop through wanted layers
+            bool found = false;
+            for (const auto &layerProperties : availableLayers) {//3. loop through available layers
+                if (strcmp(layerName, layerProperties.layerName) == 0) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found == false) {
+                return false;
+            }
+        }
+        return true;
+    }
         
     VulkanHdl::VulkanHdl(void) :
+    _TMP{TMP_checkValidationLayerSupport()},
     _appName{"Vulkan Best Tutorial"},
     _engineName{"Liminal Engine"},
     _window{_loaders::_window::_load("Vulkan App")},
@@ -43,7 +70,13 @@ namespace vulkanhdl {
     _swapChainImagesViewsHandlers{_loaders::_swapChainImagesViewsHandlers::_load(this->_logicalDevice, this->_swapChainImagesHandlers, this->_swapChainImageFormat.format)},
     _renderPass{_loaders::_renderpass::_load(this->_logicalDevice, this->_swapChainImageFormat.format)},
     _pipelineLayout{_loaders::_pipelinelayout::_load(this->_logicalDevice)},
-    _graphicsPipeline{_loaders::_pipeline::_load(this->_logicalDevice)}
+    _graphicsPipeline{_loaders::_pipeline::_load(this->_logicalDevice, this->_swapChainExtent, this->_pipelineLayout, this->_renderPass)},
+    _frameBuffers{_loaders::_framebuffers::_load(this->_logicalDevice, this->_swapChainImagesViewsHandlers, this->_swapChainExtent, this->_renderPass)},
+    _commandPool{_loaders::_commandpool::_load(this->_logicalDevice, this->_queueFamilies)},
+    _commandBuffer{_loaders::_commandbuffer::_load(this->_logicalDevice, this->_commandPool)},
+    _imageAvailableSemaphore{_loaders::_semaphore::_load(this->_logicalDevice)},
+    _renderFinishedSemaphore{_loaders::_semaphore::_load(this->_logicalDevice)},
+    _inFlightFence{_loaders::_fence::_load(this->_logicalDevice)}
     {
 
     }

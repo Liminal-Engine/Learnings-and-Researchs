@@ -24,9 +24,17 @@ namespace vulkanhdl {
              * @brief Load a pipeline
              * 
              * @param logicalDevice [const VkDevice &] The related logical device
+             * @param swapChainExtent [const VkExtent2D &] The related swap chain extent
+             * @param pipelineLayout [const VkPipelineLayout &pipelineLayout] The related pipeline layout
+             * @param renderPass [const VkRenderPass &] The related render pass
              * @return VkPipelineLayout 
              */
-            VkPipeline _load(const VkDevice &logicalDevice);
+            VkPipeline _load(
+                const VkDevice &logicalDevice,
+                const VkExtent2D &swapChainExtent,
+                const VkPipelineLayout &pipelineLayout,
+                const VkRenderPass &renderPass
+            );
             
         } // _pipeline
     } // _loaders

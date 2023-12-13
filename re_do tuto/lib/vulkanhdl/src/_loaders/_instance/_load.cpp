@@ -1,5 +1,8 @@
 #include "lib/vulkanhdl/include/_loaders/_instance/_load.hpp"
 
+#//TMP ! remove this
+#include "vulkanhdl/include/VulkanHdl.hpp"
+
 #include <GLFW/glfw3.h>
 #include <stdexcept>
 
@@ -72,11 +75,18 @@ namespace vulkanhdl {
                 VkApplicationInfo app_info = __load_app_info(app_name, engine_name);
 
                 // 2. Optional. Tells Vulan driver which extensions and validation layers we want to use.
-               VkInstanceCreateInfo create_info = __load_create_info(&app_info);
+               VkInstanceCreateInfo createInfo = __load_create_info(&app_info);
+
+                if (enableValidationLayers) {
+                    createInfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYERS.size());
+                    createInfo.ppEnabledLayerNames = VALIDATION_LAYERS.data();
+                } else {
+                    createInfo.enabledLayerCount = 0;
+                }
 
                 // 3. TODO : add validation layers in DEBUG mode ONLY
                 VkInstance res;
-                if (vkCreateInstance(&create_info, nullptr, &res) != VK_SUCCESS) {
+                if (vkCreateInstance(&createInfo, nullptr, &res) != VK_SUCCESS) {
                     throw std::runtime_error("Error while creating the Vulkan instance");
                 }
                 return res;
