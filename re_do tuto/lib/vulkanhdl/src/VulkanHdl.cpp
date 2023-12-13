@@ -20,6 +20,12 @@
 #include "vulkanhdl/include/_loaders/_semaphore/_load.hpp"
 #include "vulkanhdl/include/_loaders/_fence/_load.hpp"
 
+//Include destroys
+#include "vulkanhdl/include/_destroy/_logicalDevice/_destroy.hpp"
+#include "vulkanhdl/include/_destroy/_surface/_destroy.hpp"
+#include "vulkanhdl/include/_destroy/_instance/_destroy.hpp"
+#include "vulkanhdl/include/_destroy/_window/_destroy.hpp"
+
 #include "vulkanhdl/include/_swapChain/_image.hpp"
 
 #include <vector>
@@ -86,11 +92,10 @@ namespace vulkanhdl {
         //     vkDestroyImage(this->_swapChainImagesHandlers.at(i), nullptr);
         //     vkDestroyImageView(this->_swapChainImagesViewsHandlers.at(i), nullptr);
         // }
-        vkDestroySwapchainKHR(this->_logicalDevice, this->_swapChain, nullptr);
-        vkDestroyDevice(this->_logicalDevice, nullptr);
-        vkDestroySurfaceKHR(this->_instance, this->_surface, nullptr);
-        vkDestroyInstance(this->_instance, nullptr);
-        glfwDestroyWindow(this->_window);
-        glfwTerminate();
+        _destroyers::_logicaldevice::_destroy(this->_logicalDevice, nullptr);
+        _destroyers::_surface::_destroy(this->_instance, this->_surface, nullptr);
+        _destroyers::_instance::_destroy(this->_instance, nullptr);
+        _destroyers::_window::_destroy(this->_window);
+
     }
 }
