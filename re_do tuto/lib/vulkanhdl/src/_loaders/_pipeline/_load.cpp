@@ -204,6 +204,8 @@ namespace vulkanhdl {
                 if (vkCreateGraphicsPipelines(logicalDevice, VK_NULL_HANDLE, 1, &createInfo, nullptr, &res) != VK_SUCCESS) {
                     throw std::runtime_error("Failed to create graphics pipeline");
                 }
+                vkDestroyShaderModule(logicalDevice, vertexModule, nullptr);
+                vkDestroyShaderModule(logicalDevice, fragmentModule, nullptr);
                 return res;
             }
 

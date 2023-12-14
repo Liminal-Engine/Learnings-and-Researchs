@@ -14,14 +14,14 @@ namespace vulkanhdl {
                 const std::set<_queues::_QueueFamilyIndex_t> &families_indices
             ) {
                 std::vector<VkDeviceQueueCreateInfo> res;
-                float queuePriority = 1.0f; // Scheduling command buffer execution
+                float queuePriorities[] = {0.5f}; // Scheduling command buffer execution. We must create one float per each queue index
 
                 for (_queues::_QueueFamilyIndex_t index : families_indices) {
                     VkDeviceQueueCreateInfo queueCreateInfo{};
                     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
                     queueCreateInfo.queueFamilyIndex = index;
                     queueCreateInfo.queueCount = 1;
-                    queueCreateInfo.pQueuePriorities = &queuePriority;
+                    queueCreateInfo.pQueuePriorities = queuePriorities; //TODO new float{x} but we need to free it
 
                     res.push_back(queueCreateInfo);
                 }
