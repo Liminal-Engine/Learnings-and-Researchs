@@ -15,16 +15,16 @@ namespace vulkanhdl {
                 const std::vector<const char *> &required_extensions
             ) {
                 // 1. First, get the number of physical device on the computer
-                uint32_t n_device;
-                if (vkEnumeratePhysicalDevices(instance, &n_device, nullptr) != VK_SUCCESS) {
+                uint32_t nDevice = 0;
+                if (vkEnumeratePhysicalDevices(instance, &nDevice, nullptr) != VK_SUCCESS) {
                     throw std::runtime_error("Failed to enumerate physical device on computer");
                 }
-                if (n_device == 0) {
+                if (nDevice == 0) {
                     throw std::runtime_error("No physical device found on computer");
                 }
                 // 2. Create vector with found size and fill it
-                std::vector<VkPhysicalDevice> physical_devices(n_device);
-                if (vkEnumeratePhysicalDevices(instance, &n_device, physical_devices.data()) != VK_SUCCESS) {
+                std::vector<VkPhysicalDevice> physical_devices(nDevice);
+                if (vkEnumeratePhysicalDevices(instance, &nDevice, physical_devices.data()) != VK_SUCCESS) {
                     throw std::runtime_error("Failed to enumerate physical device on computer");
                 }
                 // 3. For each found physical device, check if it is suitable and return the first suitable found. TODO : system of score

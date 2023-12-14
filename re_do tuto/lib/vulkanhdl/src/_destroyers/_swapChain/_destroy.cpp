@@ -1,31 +1,30 @@
-#include "vulkanhdl/include/_destroyers/_logicalDevice/_destroy.hpp"
-
+#include "vulkanhdl/include/_destroyers/_swapChain/_destroy.hpp"
 /**
  * @file _destroy.cpp
  * @author your name (you@domain.com)
  * @brief 
  * @version 0.1
- * @date 2023-12-13
+ * @date 2023-12-14
  * 
  * @copyright Copyright (c) 2023
  * 
  */
 
-#include <vulkan/vulkan.h>
 
 namespace vulkanhdl {
     namespace _destroyers {
-        namespace _logicaldevice {
+        namespace _swapchain {
 
             void _destroy(
-                const VkDevice &logicalDevice,
+                const VkDevice &logicelDevice,
+                const VkSwapchainKHR &swapChain,
                 VkAllocationCallbacks *pAllocator
             ) {
-                vkDestroyDevice(logicalDevice, pAllocator);
+                vkDestroySwapchainKHR(logicelDevice, swapChain, pAllocator);
             }
             
 
-        } // _logicaldevice
+        } // _swapchain
     } // _destroy
 } // vulkanhdl
 

@@ -20,7 +20,7 @@ namespace vulkanhdl {
                     VkDeviceQueueCreateInfo queueCreateInfo{};
                     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
                     queueCreateInfo.queueFamilyIndex = index;
-                    queueCreateInfo.queueCount = 1; //Number of queue for a single queue family
+                    queueCreateInfo.queueCount = 1;
                     queueCreateInfo.pQueuePriorities = &queuePriority;
 
                     res.push_back(queueCreateInfo);

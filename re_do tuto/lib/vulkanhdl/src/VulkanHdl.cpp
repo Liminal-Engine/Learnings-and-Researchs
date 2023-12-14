@@ -20,11 +20,21 @@
 #include "vulkanhdl/include/_loaders/_semaphore/_load.hpp"
 #include "vulkanhdl/include/_loaders/_fence/_load.hpp"
 
-//Include destroys
-#include "vulkanhdl/include/_destroy/_logicalDevice/_destroy.hpp"
-#include "vulkanhdl/include/_destroy/_surface/_destroy.hpp"
-#include "vulkanhdl/include/_destroy/_instance/_destroy.hpp"
-#include "vulkanhdl/include/_destroy/_window/_destroy.hpp"
+//Include destroyers
+#include "vulkanhdl/include/_destroyers/_logicalDevice/_destroy.hpp"
+#include "vulkanhdl/include/_destroyers/_surface/_destroy.hpp"
+#include "vulkanhdl/include/_destroyers/_instance/_destroy.hpp"
+#include "vulkanhdl/include/_destroyers/_window/_destroy.hpp"
+#include "vulkanhdl/include/_destroyers/_swapChain/_destroy.hpp"
+#include "vulkanhdl/include/_destroyers/_swapChainImagesViewsHandlers/_destroy.hpp"
+#include "vulkanhdl/include/_destroyers/_renderPass/_destroy.hpp"
+#include "vulkanhdl/include/_destroyers/_pipelineLayout/_destroy.hpp"
+#include "vulkanhdl/include/_destroyers/_pipeline/_destroy.hpp"
+#include "vulkanhdl/include/_destroyers/_frameBuffers/_destroy.hpp"
+#include "vulkanhdl/include/_destroyers/_commandPool/_destroy.hpp"
+#include "vulkanhdl/include/_destroyers/_fence/_destroy.hpp"
+#include "vulkanhdl/include/_destroyers/_semaphore/_destroy.hpp"
+
 
 #include "vulkanhdl/include/_swapChain/_image.hpp"
 
@@ -88,14 +98,19 @@ namespace vulkanhdl {
     }
     
     VulkanHdl::~VulkanHdl() {
-        // for (size_t i = 0; i < this->_swapChainImagesHandlers.size(); i++) {
-        //     vkDestroyImage(this->_swapChainImagesHandlers.at(i), nullptr);
-        //     vkDestroyImageView(this->_swapChainImagesViewsHandlers.at(i), nullptr);
-        // }
+        _destroyers::_semaphore::_destroy(this->_logicalDevice, this->_imageAvailableSemaphore, nullptr);
+        _destroyers::_semaphore::_destroy(this->_logicalDevice, this->_renderFinishedSemaphore, nullptr);
+        _destroyers::_fence::_destroy(this->_logicalDevice, this->_inFlightFence, nullptr);
+        _destroyers::_commandpool::_destroy(this->_logicalDevice, this->_commandPool, nullptr);
+        _destroyers::_framebuffers::_destroy(this->_logicalDevice, this->_frameBuffers, nullptr);
+        _destroyers::_pipeline::_destroy(this->_logicalDevice, this->_graphicsPipeline, nullptr);
+        _destroyers::_pipelineLayout::_destroy(this->_logicalDevice, this->_pipelineLayout, nullptr);
+        _destroyers::_renderpass::_destroy(this->_logicalDevice, this->_renderPass, nullptr);
+        _destroyers::_swapchainimagesviewshandlers::_destroy(this->_logicalDevice, this->_swapChainImagesViewsHandlers, nullptr);
+        _destroyers::_swapchain::_destroy(this->_logicalDevice, this->_swapChain, nullptr);
         _destroyers::_logicaldevice::_destroy(this->_logicalDevice, nullptr);
         _destroyers::_surface::_destroy(this->_instance, this->_surface, nullptr);
         _destroyers::_instance::_destroy(this->_instance, nullptr);
         _destroyers::_window::_destroy(this->_window);
-
     }
 }

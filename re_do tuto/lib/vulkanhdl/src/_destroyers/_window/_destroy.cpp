@@ -1,4 +1,4 @@
-#include "vulkanhdl/include/_destroy/_window/_destroy.hpp"
+#include "vulkanhdl/include/_destroyers/_window/_destroy.hpp"
 
 namespace vulkanhdl {
     namespace _destroyers {

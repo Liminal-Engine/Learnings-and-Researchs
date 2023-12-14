@@ -1,31 +1,31 @@
-#include "vulkanhdl/include/_destroyers/_logicalDevice/_destroy.hpp"
-
 /**
  * @file _destroy.cpp
  * @author your name (you@domain.com)
  * @brief 
  * @version 0.1
- * @date 2023-12-13
+ * @date 2023-12-14
  * 
  * @copyright Copyright (c) 2023
  * 
  */
 
-#include <vulkan/vulkan.h>
+#include "vulkanhdl/include/_destroyers/_renderPass/_destroy.hpp"
+
 
 namespace vulkanhdl {
     namespace _destroyers {
-        namespace _logicaldevice {
+        namespace _renderpass {
 
             void _destroy(
                 const VkDevice &logicalDevice,
-                VkAllocationCallbacks *pAllocator
+                const VkRenderPass &renderPass,
+                VkAllocationCallbacks *pAllocators
             ) {
-                vkDestroyDevice(logicalDevice, pAllocator);
+                vkDestroyRenderPass(logicalDevice, renderPass, pAllocators);
             }
             
 
-        } // _logicaldevice
+        } // _renderpass
     } // _destroy
 } // vulkanhdl
 

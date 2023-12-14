@@ -1,31 +1,28 @@
-#include "vulkanhdl/include/_destroyers/_logicalDevice/_destroy.hpp"
-
 /**
- * @file _destroy.cpp
+ * @file _destroy.hpp
  * @author your name (you@domain.com)
  * @brief 
  * @version 0.1
- * @date 2023-12-13
+ * @date 2023-12-14
  * 
  * @copyright Copyright (c) 2023
  * 
  */
-
-#include <vulkan/vulkan.h>
+#include "vulkanhdl/include/_destroyers/_fence/_destroy.hpp"
 
 namespace vulkanhdl {
     namespace _destroyers {
-        namespace _logicaldevice {
+        namespace _fence {
 
             void _destroy(
                 const VkDevice &logicalDevice,
+                const VkFence &fence,
                 VkAllocationCallbacks *pAllocator
             ) {
-                vkDestroyDevice(logicalDevice, pAllocator);
+                vkDestroyFence(logicalDevice, fence, pAllocator);
             }
-            
 
-        } // _logicaldevice
+        } // _fence
     } // _destroy
 } // vulkanhdl
 
