@@ -14,7 +14,7 @@ namespace vulkanhdl {
                 const std::set<_queues::_QueueFamilyIndex_t> &families_indices
             ) {
                 std::vector<VkDeviceQueueCreateInfo> res;
-                float queuePriorities[] = {0.5f}; // Scheduling command buffer execution. We must create one float per each queue index
+                float queuePriorities[] = {1.0f}; // Scheduling command buffer execution. We must create one float per each queue index
 
                 for (_queues::_QueueFamilyIndex_t index : families_indices) {
                     VkDeviceQueueCreateInfo queueCreateInfo{};
