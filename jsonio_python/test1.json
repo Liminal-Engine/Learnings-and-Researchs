@@ -1,0 +1,16 @@
+{
+    "name": "John Doe",
+    "age": 30,
+    "isEmployed": true,
+    "address": {
+        "story": {
+            "left": 15,
+            "right": 678.5
+        },
+        "street": "123 Main St",
+        "city": "Anytown",
+        "state": "Anystate",
+        "postalCode": "12345"
+    },
+    "hobbies": ["reading", "gaming", "hiking"]
+}

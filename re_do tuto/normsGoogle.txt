@@ -1,0 +1,2 @@
+except for function names which are in camelCase
+

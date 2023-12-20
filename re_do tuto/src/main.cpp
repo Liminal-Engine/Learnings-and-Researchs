@@ -1,4 +1,4 @@
-#include "lib/vulkanhdl/include/VulkanHdl.hpp"
+#include "lib/liminalvulkanwrapper/include/VulkanHdl.hpp"
 
 int main() {
     vulkanhdl::VulkanHdl vulkanhandler;
